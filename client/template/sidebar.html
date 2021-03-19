@@ -32,6 +32,24 @@
                     <li ui-sref-active="active"><a ui-sref="app.brands.campaign">Campaigns</a></li>
                 </ul>
             </li>
+            
+            <!-- Graphs menu start -->
+            <li class="has-sub" ng-class="{active:$state.includes('app.graphs')}">
+                <a href="javascript:;">
+                    <span class="caret pull-right"></span>
+                    <i class="fa fa-file"></i>
+                    <span>Graphs</span>
+                </a>
+                <ul class="sub-menu">
+                    <li ui-sref-active="active"><a ui-sref="app.graphs.topfood&beverage">Top Food&Beverage</a></li>
+                    <li ui-sref-active="active"><a ui-sref="app.graphs.topcontent">Top Contetnt</a></li>
+                    <li ui-sref-active="active"><a ui-sref="app.graphs.topgenre">Top Genre</a></li>
+                    <!-- <li ui-sref-active="active"><a ui-sref="app.graphs.toplocations">Top Locations</a></li> -->
+                    <!-- <li ui-sref-active="active"><a ui-sref="app.graphs.timezone">Time Zone</a></li> -->
+                    <!-- <li ui-sref-active="active"><a ui-sref="app.graphs.timezone">Smartphone User</a></li> -->
+
+                </ul>
+            </li>
             <!-- brands menu end -->
             <!-- flight tracking menu start -->
             <li class="has-sub" ng-class="{active:$state.includes('app.flightTracking')}">
@@ -49,12 +67,16 @@
                     <li ui-sref-active="active"><a ui-sref="app.reports.events">Events Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.cabincrew">CabinCrew Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.tracker">Play Logs</a></li>
+                    <li ui-sref-active="active"><a ui-sref="app.reports.mobile">Mobile Logs</a></li>
+
                     <li ui-sref-active="active"><a ui-sref="app.reports.ads">Ads Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.games">Games Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.read">Read Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.travel">Travel Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.malls">Malls Logs</a></li>
                     <li ui-sref-active="active"><a ui-sref="app.reports.FnB">FnB Logs</a></li>
+                    <li ui-sref-active="active"><a ui-sref="app.reports.nested5">Nested5 Logs</a></li>
+                    <li ui-sref-active="active"><a ui-sref="app.reports.Coupon">Coupon Logs</a></li>
                     <!-- <li ui-sref-active="active"><a ui-sref="app.reports.memorytracker">Memory Tracker</a></li> -->
                     <!-- <li ui-sref-active="active"><a ui-sref="app.reports.serversession">Server Sessions</a></li> -->
                     <li ui-sref-active="active"><a ui-sref="app.reports.topclicks">Top Clicks</a></li>

@@ -92,7 +92,7 @@ colorAdminApp.controller('apkController', function ($scope, $rootScope, $state, 
 colorAdminApp.controller('registrationLogsController', function ($scope, $rootScope, $state, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -209,7 +209,7 @@ colorAdminApp.controller('registrationLogsController', function ($scope, $rootSc
 colorAdminApp.controller('eventsLogsController', function ($scope, $rootScope, $state, $cookieStore, $http) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     console.log(currentDate);
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
@@ -311,8 +311,8 @@ colorAdminApp.controller('eventsLogsController', function ($scope, $rootScope, $
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -335,11 +335,10 @@ colorAdminApp.controller('eventsLogsController', function ($scope, $rootScope, $
     };
 });
 
-
 colorAdminApp.controller('cabinCrewLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -423,8 +422,8 @@ colorAdminApp.controller('cabinCrewLogsController', function ($scope, $interval,
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -446,13 +445,11 @@ colorAdminApp.controller('cabinCrewLogsController', function ($scope, $interval,
             });
     };
 });
-
-
-
+                                                                                                                                                                                                                                 
 colorAdminApp.controller('adsLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -552,8 +549,8 @@ colorAdminApp.controller('adsLogsController', function ($scope, $interval, $root
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -578,7 +575,7 @@ colorAdminApp.controller('adsLogsController', function ($scope, $interval, $root
 colorAdminApp.controller('gamesLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -689,8 +686,143 @@ colorAdminApp.controller('gamesLogsController', function ($scope, $interval, $ro
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
+            minDate: '06/01/2017',
+            maxDate: '12/31/2022',
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+        },
+            function (start, end) {
+                $scope.vuscreendaterangeSelector = start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY');
+                $scope.startDate = start.format('MMMM D, YYYY');
+                $scope.endDate = end.format('MMMM D, YYYY');
+                $scope.$apply();
+                dautable.clear().draw();
+                $scope.create($scope.startDate, $scope.endDate)
+            });
+    };
+});
+
+colorAdminApp.controller('nested5LogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
+    function pad(s) { return (s < 10) ? '0' + s : s; }
+    var d = new Date();
+    var currentDate = new Date().toISOString().slice(0, 10)
+    $scope.startDate = currentDate;
+    $scope.endDate = currentDate;
+    $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
+    $scope.create = function (startDate, endDate) {
+        var url = "/api/vuscreen/nested5/bottomdata?startDate=" + startDate + "&endDate=" + endDate
+        $http.get(url)
+            .then(function (response) {
+                if (response.data.length > 0) {
+                    $scope.clicks = response.data[0]
+                    console.log($scope.clicks);
+
+                } else {
+                    alert("No Data to Display")
+                }
+            });
+    }
+    $scope.create($scope.startDate, $scope.endDate)
+    if ($('#nested5-data-data-table').length !== 0) {
+        // alert($cookieStore.get('token'));
+        var dautable = $('#nested5-data-data-table').DataTable({
+            dom: 'lBfrtip',
+            // scrollY:        300,
+            destroy: true,
+            scrollX: true,
+            scrollCollapse: true,
+            searching: true,
+            paging: true,
+            fixedColumns: true,
+            responsive: false,
+            select: true,
+            pageLength: 100,
+            pagingType: "full_numbers",
+            buttons: [
+                // { extend: 'copy', className: 'btn-sm'},
+                { extend: 'csv', className: 'btn-sm', exportURL: '/api/vuscreen/nested5/export/csv' },
+                // { extend: 'pdf', className: 'btn-sm'},
+                { extend: 'colvis', className: 'btn-sm' },
+            ],
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "/api/vuscreen/nested5",
+                data: function (d) {
+                    d.startDate = $scope.startDate;
+                    d.endDate = $scope.endDate;
+                    d.access_token = $cookieStore.get('token');
+                },
+                complete: function (response) {
+                    // console.log(response);
+                }
+            },
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }],
+            columns: [
+                { data: "hostId", searchBy: true },
+                { data: "source" },
+                { data: "destination" },
+           
+                { data: "type" },
+                {data:"TITLE"}, 
+                {data:"location"},
+                {
+                    data: "view_datetime",
+                    render: function (data) {
+                        return moment(data).format('YYYY-MM-DD, HH:mm:ss');
+                    }
+                },
+                { data: "sync_date", searchBy: true },
+                {
+                    data: "view_duration",
+                    render: function (data) {
+                        return data.toFixed(2);
+                    }
+                },
+                { data: "user_agent" },
+                { data: "play_duration", visible: false },
+                { data: "sync_type", visible: false },
+                { data: "mac", searchBy: true, visible: false },
+                // { data: "genre",searchBy:true },
+               
+                { data: "device_id", searchBy: true, visible: false },
+                { data: "interface", visible: false },
+                // { data: "model" },
+                { data: "view_model", visible: false },
+                { data: "journey_id", visible: false },
+                { data: "version", visible: false },
+                { data: "view_android_id", visible: false },
+                { data: "reg_id", searchBy: true, visible: false }
+            ],
+            drawCallback: function (settings) {
+                //alert( 'DataTables has redrawn the table' );
+            }
+        });
+        $('div.dataTables_filter input').unbind();
+        $("div.dataTables_filter input").keyup(function (e) {
+            if (e.keyCode == 13) {
+                dautable.search(this.value).draw();
+            }
+        });
+        /* Date Range Picker
+        ------------------------- */
+        $('#nested5-data-daterange').daterangepicker({
+            opens: 'right',
+            format: 'MM/DD/YYYY',
+            separator: ' to ',
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -716,7 +848,7 @@ colorAdminApp.controller('gamesLogsController', function ($scope, $interval, $ro
 colorAdminApp.controller('readLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -827,8 +959,8 @@ colorAdminApp.controller('readLogsController', function ($scope, $interval, $roo
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -851,10 +983,240 @@ colorAdminApp.controller('readLogsController', function ($scope, $interval, $roo
     };
 });
 
+colorAdminApp.controller('mobileLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
+    function pad(s) { return (s < 10) ? '0' + s : s; }
+    var d = new Date();
+    var currentDate = new Date().toISOString().slice(0, 10)
+    $scope.startDate = currentDate;
+    $scope.endDate = currentDate;
+    $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
+    
+  
+    if ($('#dau-data-data-table').length !== 0) {
+        // alert($cookieStore.get('token'));
+        var dautable = $('#dau-data-data-table').DataTable({
+            dom: 'lBfrtip',
+            // scrollY:        300,
+            destroy: true,
+            scrollX: true,
+            scrollCollapse: true,
+            searching: true,
+            paging: true,
+            fixedColumns: true,
+            responsive: false,
+            select: true,
+            pageLength: 100,
+            pagingType: "full_numbers",
+            buttons: [
+                // { extend: 'copy', className: 'btn-sm'},
+                { extend: 'csv', className: 'btn-sm', exportURL: '/api/vuscreen/clubregistration/export/csv' },
+                // { extend: 'pdf', className: 'btn-sm'},
+                { extend: 'colvis', className: 'btn-sm' },
+            ],
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "/api/vuscreen/clubregistration",
+                data: function (d) {
+                    d.startDate = $scope.startDate;
+                    d.endDate = $scope.endDate;
+                    d.access_token = $cookieStore.get('token');
+                },
+                complete: function (response) {
+                    console.log(response);
+                }
+            },
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }],
+            columns: [
+                { data: "hostId", searchBy: true },
+                { data: "source"},
+                { data: "destination", searchBy: true },
+                { data: "type" },
+                { data: "title", searchBy: true},
+                {data:"category"},
+                { data: "mobile" },               
+                { data: "email", searchBy: true },
+                {data:"journey_id"},
+                { data: "latitude" }, 
+                { data: "longitude" },
+                { data: "sync_date" },
+                { data: "mac_address", searchBy: true, visible: false },
+                { data: "user_name", searchBy: true,visible: false },
+                { data: "card_type",visible: false },
+                { data: "dob",visible: false },               
+                { data: "gender",visible: false },               
+                { data: "_id",visible: false },
+                { data: "time", searchBy: true, visible: false },
+                { data: "sync_timestamp", visible: false },
+                { data: "sync_datetime", visible: false },
+            ],
+            drawCallback: function (settings) {
+                //alert( 'DataTables has redrawn the table' );
+            }
+        });
+        $('div.dataTables_filter input').unbind();
+        $("div.dataTables_filter input").keyup(function (e) {
+            if (e.keyCode == 13) {
+                dautable.search(this.value).draw();
+            }
+        });
+        /* Date Range Picker
+        ------------------------- */
+        $('#dau-data-daterange').daterangepicker({
+            opens: 'right',
+            format: 'MM/DD/YYYY',
+            separator: ' to ',
+            startDate: moment(),
+            endDate: moment(),
+            minDate: '06/01/2017',
+            maxDate: '12/31/2022',
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+        },
+            function (start, end) {
+                $scope.vuscreendaterangeSelector = start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY');
+                $scope.startDate = start.format('MMMM D, YYYY');
+                $scope.endDate = end.format('MMMM D, YYYY');
+                $scope.$apply();
+                dautable.clear().draw();
+           
+            });
+    };
+});
+
+
+colorAdminApp.controller('couponLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
+    function pad(s) { return (s < 10) ? '0' + s : s; }
+    var d = new Date();
+    var currentDate = new Date().toISOString().slice(0, 10)
+    $scope.startDate = currentDate;
+    $scope.endDate = currentDate;
+    $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
+    
+  
+    if ($('#dau-data-data-table').length !== 0) {
+        // alert($cookieStore.get('token'));
+        var dautable = $('#dau-data-data-table').DataTable({
+            dom: 'lBfrtip',
+            // scrollY:        300,
+            destroy: true,
+            scrollX: true,
+            scrollCollapse: true,
+            searching: true,
+            paging: true,
+            fixedColumns: true,
+            responsive: false,
+            select: true,
+            pageLength: 100,
+            pagingType: "full_numbers",
+            buttons: [
+                // { extend: 'copy', className: 'btn-sm'},
+                { extend: 'csv', className: 'btn-sm', exportURL: '/api/vuscreen/couponHistory/export/csv' },
+                // { extend: 'pdf', className: 'btn-sm'},
+                { extend: 'colvis', className: 'btn-sm' },
+            ],
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "/api/vuscreen/couponHistory",
+                data: function (d) {
+                    d.startDate = $scope.startDate;
+                    d.endDate = $scope.endDate;
+                    d.access_token = $cookieStore.get('token');
+                },
+                complete: function (response) {
+                    console.log(response);
+                }
+            },
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }],
+            columns: [
+              
+                { data: "hostId",searchBy: true, },     
+                { data: "source" },               
+                { data: "destination" },               
+                { data: "category" },
+                { data: "TITLE"},
+                { data: "mobile"},
+                { data: "status"},
+                { data: "latitude" }, 
+                { data: "longitude" },
+                {data:"journey_id"},
+                { data: "coupon_code" },
+                { data: "coupon_type" },
+                {data:"mac_address"},
+                { data: "sync_date"}
+                // {data:"journey_id"},
+                // { data: "latitude" }, 
+                // { data: "longitude" },
+                // { data: "sync_date" },
+                // { data: "mac_address", searchBy: true, visible: false },
+                // { data: "user_name", searchBy: true,visible: false },
+                // { data: "card_type",visible: false },
+                // { data: "dob",visible: false },               
+                // { data: "gender",visible: false },               
+                // { data: "_id",visible: false },
+                // { data: "time", searchBy: true, visible: false },
+                // { data: "sync_timestamp", visible: false },
+                // { data: "sync_datetime", visible: false },
+            ],
+            drawCallback: function (settings) {
+                //alert( 'DataTables has redrawn the table' );
+            }
+        });
+        $('div.dataTables_filter input').unbind();
+        $("div.dataTables_filter input").keyup(function (e) {
+            if (e.keyCode == 13) {
+                dautable.search(this.value).draw();
+            }
+        });
+        /* Date Range Picker
+        ------------------------- */
+        $('#dau-data-daterange').daterangepicker({
+            opens: 'right',
+            format: 'MM/DD/YYYY',
+            separator: ' to ',
+            startDate: moment(),
+            endDate: moment(),
+            minDate: '06/01/2017',
+            maxDate: '12/31/2022',
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+        },
+            function (start, end) {
+                $scope.vuscreendaterangeSelector = start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY');
+                $scope.startDate = start.format('MMMM D, YYYY');
+                $scope.endDate = end.format('MMMM D, YYYY');
+                $scope.$apply();
+                dautable.clear().draw();
+           
+            });
+    };
+});
+
+
 colorAdminApp.controller('travelLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
+    console.log(currentDate)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -912,12 +1274,14 @@ colorAdminApp.controller('travelLogsController', function ($scope, $interval, $r
                 },
                 { data: "mac", searchBy: true, visible: false },
                 // { data: "genre",searchBy:true },
-                { data: "type", searchBy: true },
+                // { data: "type", searchBy: true },
+                { data: "menu" },
                 { data: "device_id", searchBy: true, visible: false },
                 { data: "source", visible: false },
                 { data: "destination", visible: false },
                 { data: "vehicle_no", searchBy: true },
                 { data: "interface", visible: false },
+                { data: "menu" },
                 // { data: "model" },
                 { data: "view_model", visible: false },
                 {
@@ -950,8 +1314,8 @@ colorAdminApp.controller('travelLogsController', function ($scope, $interval, $r
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -976,7 +1340,7 @@ colorAdminApp.controller('travelLogsController', function ($scope, $interval, $r
 colorAdminApp.controller('mallsLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -1072,8 +1436,8 @@ colorAdminApp.controller('mallsLogsController', function ($scope, $interval, $ro
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -1098,7 +1462,7 @@ colorAdminApp.controller('mallsLogsController', function ($scope, $interval, $ro
 colorAdminApp.controller('FnBLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -1173,6 +1537,7 @@ colorAdminApp.controller('FnBLogsController', function ($scope, $interval, $root
                     }
                 },
                 { data: "type", searchBy: true },
+                { data: "menu" },
                 { data: "user_agent" },
                 {
                     data: "view_duration",
@@ -1181,6 +1546,7 @@ colorAdminApp.controller('FnBLogsController', function ($scope, $interval, $root
                     }
                 },
                 { data: "play_duration", visible: false },
+
                 { data: "sync_type", visible: false },
                 { data: "mac", searchBy: true, visible: false },
                 { data: "device_id", searchBy: true, visible: false },
@@ -1208,8 +1574,8 @@ colorAdminApp.controller('FnBLogsController', function ($scope, $interval, $root
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -1235,7 +1601,7 @@ colorAdminApp.controller('FnBLogsController', function ($scope, $interval, $root
 colorAdminApp.controller('trackerLogsController', function ($scope, $interval, $rootScope, $http, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -1328,6 +1694,7 @@ colorAdminApp.controller('trackerLogsController', function ($scope, $interval, $
                 },
                 { data: "play_duration" },
                 { data: "platform_duration" },
+                { data: "menu" }, 
                 { data: "user_agent" },
                 { data: "sync_type", visible: false },
                 { data: "genre", searchBy: true, visible: false },
@@ -1359,8 +1726,8 @@ colorAdminApp.controller('trackerLogsController', function ($scope, $interval, $
             opens: 'right',
             format: 'MM/DD/YYYY',
             separator: ' to ',
-            startDate: moment().subtract(1, 'days'),
-            endDate: moment().subtract(1, 'days'),
+            startDate: moment(),
+            endDate: moment(),
             minDate: '06/01/2017',
             maxDate: '12/31/2022',
             ranges: {
@@ -1428,7 +1795,7 @@ colorAdminApp.controller('trackerLogsController', function ($scope, $interval, $
 colorAdminApp.controller('temptrackerLogsController', function ($scope, $rootScope, $state, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -1538,7 +1905,7 @@ colorAdminApp.controller('temptrackerLogsController', function ($scope, $rootSco
 colorAdminApp.controller('memorytrackerLogsController', function ($scope, $rootScope, $state, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.MemorydaterangeSelector = currentDate + ' - ' + currentDate;
@@ -1638,7 +2005,7 @@ colorAdminApp.controller('memorytrackerLogsController', function ($scope, $rootS
 colorAdminApp.controller('ServerSessionLogsController', function ($scope, $rootScope, $state, $cookieStore) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date();
-    var currentDate = [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate() - 1)].join('-');
+    var currentDate = new Date().toISOString().slice(0, 10)
     $scope.startDate = currentDate;
     $scope.endDate = currentDate;
     $scope.vuscreendaterangeSelector = currentDate + ' - ' + currentDate;
@@ -3030,6 +3397,8 @@ colorAdminApp.controller('serverSessionController', function ($scope, $rootScope
                 'This Month': [moment().startOf('month'), moment().endOf('month')],
                 'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
             },
+            minDate: '03/01/2021',
+            maxDate: '12/31/2022',
             startDate: moment().subtract(1, 'days'),
             endDate: moment().subtract(1, 'days')
         },

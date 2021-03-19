@@ -10,6 +10,8 @@ var path = require('path');
 module.exports = function(app) {
 
   // Insert routes below
+  // app.use('/api/graphs', require('./api/graphs'));
+  app.use('/api/graphs', require('./api/graphs'));
   app.use('/api/cron', require('./api/cron'));
   app.use('/api/tambola', require('./api/tambola'));
   app.use('/api/flight', require('./api/flight'));

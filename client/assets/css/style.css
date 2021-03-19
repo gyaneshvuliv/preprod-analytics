@@ -570,7 +570,7 @@ label {
 .sidebar .nav > li.active > a:hover, 
 .sidebar .nav > li.active > a:focus {
     color: #fff;
-    background: #00acac;
+    background: #e51737;
 }
 .sidebar .nav > li.active > a .label.label-success,
 .sidebar .nav > li.active > a .badge.badge-success {
@@ -654,7 +654,7 @@ label {
     color: #889097;
 }
 .sidebar .sub-menu > li.active > a:before {
-    color: #00acac;
+    color: #e51737;
 }
 .sidebar .nav .sub-menu > li > a .caret {
     float: right; 
@@ -1013,10 +1013,10 @@ label {
 .has-success .radio-inline, 
 .has-success .checkbox-inline,
 .has-success .form-control-feedback {
-    color: #00acac;
+    color: #e51737;
 }
 .has-success .form-control {
-    border-color: #00acac;
+    border-color: #e51737;
 }
 .has-success .form-control:focus {
     border-color: #008a8a;
@@ -1383,7 +1383,7 @@ legend {
     box-shadow: none;
 }
 .progress-bar.progress-bar-success {
-    background-color: #00acac;
+    background-color: #e51737;
 }
 .progress-bar.progress-bar-info {
     background-color: #49b6d6;
@@ -1694,8 +1694,8 @@ legend {
 
 .btn.btn-success {
     color: #fff;
-    background: #00acac;
-    border-color: #00acac;
+    background: #e51737;
+    border-color: #e51737;
 }
 .btn.btn-success:hover, 
 .btn.btn-success:focus, 
@@ -2889,7 +2889,7 @@ a.text-white:focus {
 }
 .dataTables_wrapper table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before, 
 .dataTables_wrapper table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before {
-    background: #00acac;
+    background: #e51737;
 }
 body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
     margin: 5px 0;
@@ -3775,7 +3775,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 .todolist > li.active > a:hover .todolist-input i:before,
 .todolist > li.active > a:focus .todolist-input i:before {
     content: '\f14a';
-    color: #00acac;
+    color: #e51737;
     opacity: 1.0;
     filter: alpha(opacity=100);
 }
@@ -4265,7 +4265,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 }
 .timeline .timeline-icon a:hover,
 .timeline .timeline-icon a:focus {
-    background: #00acac;
+    background: #e51737;
 }
 .timeline .timeline-body {
     margin-left: 25%;
@@ -4307,7 +4307,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 }
 .timeline-header .username,
 .timeline-header .username a {
-    color: #00acac;
+    color: #e51737;
 }
 .timeline img {
     max-width: 100%;
@@ -4431,7 +4431,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
     color: #999;
 }
 .coming-soon a {
-    color: #00acac;
+    color: #e51737;
 }
 .coming-soon .coming-soon-content {
     color: #333;
@@ -5251,7 +5251,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
     background: #fff;
 }
 .list-email > li.list-group-item.success:before {
-    background: #00acac;
+    background: #e51737;
 }
 .list-email > li.list-group-item.info:before {
     background-color: #49b6d6;
@@ -5723,7 +5723,7 @@ body.flat-black {
     right: 0;
     text-align: center;
     height: 3px;
-    background: #00acac;
+    background: #e51737;
     -webkit-transition: width 1s;
     -moz-transition: width 1s;
     -o-transition: width 1s;
@@ -5748,8 +5748,8 @@ body.flat-black {
     width: 14px;
     height: 14px;
     border: solid 2px transparent;
-    border-top-color: #00acac;
-    border-left-color: #00acac;
+    border-top-color: #e51737;
+    border-left-color: #e51737;
     border-radius: 10px;
     -webkit-animation: pace-spinner 400ms linear infinite;
     -moz-animation: pace-spinner 400ms linear infinite;
@@ -6598,7 +6598,7 @@ body .bootstrap-datetimepicker-widget table td {
 .top-menu .nav > li.active > a,
 .top-menu .nav > li.active > a:hover,
 .top-menu .nav > li.active > a:focus{
-    background: #00acac;
+    background: #e51737;
     color: #fff;
 }
 
@@ -6810,7 +6810,7 @@ body .bootstrap-datetimepicker-widget table td {
     background-color: transparent;
 }
 .card-success {
-    background-color: #00acac;
+    background-color: #e51737;
     border-color: #00acac;
 }
 .card-success .card-header,

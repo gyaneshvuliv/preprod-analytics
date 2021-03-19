@@ -1,4 +1,4 @@
-<div ng-controller="travelLogsController">
+<div ng-controller="couponLogsController">
     <!-- begin breadcrumb -->
     <ol class="breadcrumb pull-right">
         <li><a href="javascript:;">Home</a></li>
@@ -7,7 +7,7 @@
     </ol>
     <!-- end breadcrumb -->
     <!-- begin page-header -->
-    <h1 class="page-header">Vuscreen Users <small>All Vuscreen Travel data will be displayed here date wise...</small></h1>
+    <h1 class="page-header">Vuscreen Users <small>All Vuscreen Coupon History data will be displayed here date wise...</small></h1>
     <!-- end page-header -->
     
     <!-- begin row -->
@@ -25,40 +25,45 @@
                         <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                         <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
                     </div>
-                    <h4 class="panel-title">Vuscreen Travel Logs</h4>
+                    <h4 class="panel-title">Vuscreen Coupon History Logs </h4>
+                   
                 </div>
                 <div class="alert alert-info fade in">
                     <button type="button" class="close" data-dismiss="alert">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    All Vuscreen Travel data will be displayed here.
+                    All Vuscreen Coupon History will be displayed here.
                 </div>
                 <div class="panel-body">
                     <table id="dau-data-data-table" class="table table-striped table-bordered">
                         <thead>
                             <tr>
-                                <th>Thumbnail</th>
-                                <th>Title</th>
-                                <th>Played At</th>
-                                <th>Mac Address</th>
-                                <!-- <th>Category</th> -->
-                                <!-- <th>Type</th> -->
-                                <th>Menu</th>
-                                <th>Device ID</th>
-                                <th>Source</th>
+                                <th>hostId</th>
+                                <th>source</th>
                                 <th>Destination</th>
-                                <th>Host ID</th>
-                                <th>Interface</th>
-                                <th>Menu</th>
+                                <th>Category</th>
+                                <th>title</th>
+                                <th>mobile</th>
+                                <th>status</th>
+                                <th>latitude</th>
+                                <th>longitude</th>
+                                <th>journey_id</th>
+                                <th>coupon_code</th>
+                                <th>coupon_type</th>
+                                <th>mac_address</th>
+                                <th>sync_date</th>
+                                <!-- <th>sync_date</th> -->
+                                <!-- <th>mac_address</th>
+                                <th>user_name</th>
+                                <th>card_type</th>
+                                <th>dob</th>
+                                <th>gender</th>
+                                <th>_id</th>
+                                <th>time</th>  -->
                                 <!-- <th>Model</th> -->
-                                <th>View Model</th>
-                                <th>View Duration(S)</th>
-                                <th>Version</th>
-                                <th>Client ID</th>
-                                <th>Play Duration</th>
-                                <th>Sync Type</th>
-                                <th>Reg ID</th>
-                                <th>User Agent</th>
+                                <!-- <th>sync_timestamp</th>
+                                <th>sync_datetime</th> -->
+                              
                             </tr>
                         </thead>
                     </table>

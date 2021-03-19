@@ -45,9 +45,22 @@ router.get('/play/real-time', auth.isAuthenticated(), controller.play_real_time)
 router.get('/games', auth.isAuthenticated(), controller.vuscreen_game_index);
 router.get('/games/export/csv', auth.isAuthenticated(), controller.vuscreen_game_export_csv);
 
+//nested5
+router.get('/nested5', auth.isAuthenticated(), controller.vuscreen_nested5_index);
+router.get('/nested5Data/export/csv', auth.isAuthenticated(), controller.vuscreen_nested5Data_export_csv);
+
 //read
 router.get('/reads', auth.isAuthenticated(), controller.vuscreen_read_index);
 router.get('/reads/export/csv', auth.isAuthenticated(), controller.vuscreen_read_export_csv);
+
+//clubregistration
+router.get('/clubregistration', auth.isAuthenticated(), controller.vuscreen_mobile_index);
+router.get('/clubregistration/export/csv', auth.isAuthenticated(), controller.vuscreen_mobile_export_csv);
+
+//couponHistory
+router.get('/couponHistory', auth.isAuthenticated(), controller.vuscreen_coupon_index);
+router.get('/couponHistory/export/csv', auth.isAuthenticated(), controller.vuscreen_coupon_export_csv);
+
 
 //travel
 router.get('/travels', auth.isAuthenticated(), controller.vuscreen_travel_index);
@@ -116,6 +129,7 @@ router.get('/event/bottomdata', controller.vuscreen_getEventData_Bottom);
 router.get('/play/bottomdata', controller.vuscreen_getplayData_Bottom);
 router.get('/read/bottomdata', controller.vuscreen_getreadData_Bottom);
 router.get('/game/bottomdata', controller.vuscreen_getGameData_Bottom);
+router.get('/nested5/bottomdata', controller.vuscreen_getnested5Data_Bottom);
 router.get('/fnb/bottomdata', controller.vuscreen_getfnbData_Bottom);
 router.get('/analytics/clicks_users_alls', controller.vuscreen_analyticsvu_panl);
 
@@ -126,6 +140,15 @@ router.get('/analytics/clicks_users_allsPro', controller.vuscreen_analyticsvu_pa
 router.get('/analytics/clicks_users_des', controller.vuscreen_analyticsvu_des);
 router.get('/analytics/clicks_wifipro', controller.wifi_login_pro);
 router.get('/analytics/clicks_wifiact', controller.wifi_login_act);
+
+
+
+router.get('/analytics/sms/summary', controller.vuscreen_SmsSummary);
+router.get('/analytics/sms/watch', controller.vuscreen_WatchAnalytics);
+router.get('/analytics/sms/travel', controller.vuscreen_TravelAnalytics);
+router.get('/analytics/sms/game', controller.vuscreen_GameAnalytics);
+router.get('/analytics/sms/fnb', controller.vuscreen_FnbAnalytics);
+router.get('/analytics/sms/pro', controller.vuscreen_projectedReport);
 
 
 

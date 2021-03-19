@@ -109,8 +109,8 @@ var dauEmaiwifiSync = new cronJob('00 25 01 * * *', function () {
     // var dauEmaiwifiSync = new cronJob('*/15 * * * * *', function () {
     controller.wifi_login_sync()
 });
-var dauEmailSMS = new cronJob('00 05 02 * * *', function () {
-    // var dauEmaiwifiSync = new cronJob('*/15 * * * * *', function () {
+var SmsReport = new cronJob('00 05 02 * * *', function () {
+    // var SmsReport = new cronJob('*/15 * * * * *', function () {
     controller.vuscreen_SmsReport()
 });
 var basestation = new cronJob('00 10 03 * * *', function () {
@@ -130,16 +130,16 @@ var eros = new cronJob('00 15 03 * * *', function () {
 
 // dauEmailJob.start()
 // playEmailJob.start()
-// fnbEmailJob.start()
-// topClick.start()
-// Analytics.start()
-// dauEmaiTemplJob.start()
-// dauEmaiwifiView.start()
-// dauEmaiwifiSync.start()
-// dauEmailSMS.start()
-// basestation.start()
-// hostNotPlaced.start()
-// eros.start();
+fnbEmailJob.start()
+topClick.start()
+Analytics.start()
+dauEmaiTemplJob.start()
+dauEmaiwifiView.start()
+dauEmaiwifiSync.start()
+SmsReport.start()
+basestation.start()
+hostNotPlaced.start()
+eros.start();
 // vehicleUpdateJob.start()
 // morjob.start()
 // evejob.start()
