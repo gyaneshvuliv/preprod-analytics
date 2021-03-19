@@ -19,6 +19,10 @@ router.get('/topcontent', auth.isAuthenticated(), controller.top_content);
 // top 10 Food&beverages
 router.get('/topfood', auth.isAuthenticated(), controller.top_food);
 
+// time zone
+router.get('/timeZoneWiseWIFILogin', auth.isAuthenticated(), controller.timeZoneWiseWIFILogin);
 
+//top 10 destination wise wifilogin
+router.get('/destinationWiseWIFILogin', auth.isAuthenticated(), controller.destinationWiseWIFILogin);
 
 module.exports = router;

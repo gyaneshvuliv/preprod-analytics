@@ -15,6 +15,7 @@ var config = require('../../../server/config/environment');
 var request = require('request');
 var cronController = require('../cron/cron.controller');
 var async = require('async');
+const { user } = require('../../config/email-settings');
 
 
 
@@ -86,11 +87,11 @@ exports.top_food = function (req, res) {
 //   top_food();
 
 // Get wifiogin in timezone/////
-exports.timeZoneWiseWIFILogin = function () {
+exports.timeZoneWiseWIFILogin = function (req, res) {
   // var timeZoneWiseWIFILogin = function () {
   async function app() {
     var finalData = [];
-    for (let p = 1; p < 3; p++) {
+    for (let p = 1; p < 2; p++) {
       // var currentDate = moment(new Date()).format('YYYY-MM-DD');
       var d = new Date();
       // console.log(p);
@@ -136,17 +137,17 @@ exports.timeZoneWiseWIFILogin = function () {
           // cycle:i,
           start: timezoneone[i].start,
           end: timezoneone[i].end,
-
           user: doc1
         }
-        console.log(midData);
+        // console.log(midData);
         finalData.push(midData);
 
       }
     }
     // console.log("abc");
     console.log(finalData);
-    let doc2 = await email_TZW(finalData);
+    res.json(finalData);
+    // let doc2 = await email_TZW(finalData);
 
 
     //   res.status("200").json(insert);
@@ -213,11 +214,11 @@ function wifi_login_timeZone_wise(start, end) {
 };
 
 ////////Get Destination wise wifilogin/////////////////
-exports.destinationWiseWIFILogin = function () {
+exports.destinationWiseWIFILogin = function (req, res) {
   // var destinationWiseWIFILogin = function () {
   async function app() {
     var finalData = [];
-    for (let p = 1; p < 3; p++) {
+    for (let p = 1; p < 2; p++) {
       // var currentDate = moment(new Date()).format('YYYY-MM-DD');
       var d = new Date();
       // console.log(p);
@@ -317,18 +318,21 @@ exports.destinationWiseWIFILogin = function () {
         let doc1 = await wifi_login_des_wise(dest[i], Yesterday);
         // console.log(host);
         let midData = {
+          user: doc1,
           date: Yesterday,
-          des: dest[i],
-          user: doc1
+          des: dest[i]
         }
-        console.log(midData);
+        // console.log(midData);
         finalData.push(midData);
 
       }
     }
     // console.log("abc");
-    console.log(finalData);
-    let doc2 = await email_DW(finalData);
+    // console.log(finalData);
+    finalData.sort(function(a, b){return b.user-a.user});
+//  console.log(finalData);
+    res.json(finalData);
+    // let doc2 = await email_DW(finalData);
 
 
     //   res.status("200").json(insert);
@@ -338,30 +342,58 @@ exports.destinationWiseWIFILogin = function () {
 
 };
 
-function email_DW(a) {
+function wifi_login_des_wise(dest, Yesterday) {
   return new Promise(function (myResolve, myReject) {
+    // console.log("vish");
+    var query = `SELECT  a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id    WHERE  a.view_date =  '${Yesterday}'  and a.destination= '${dest}' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC`;
+    db.get().query(query, function (err, doc) {
+      // console.log(err);
+      if (err) { return handleError(res, err); }
+      else {
+        // console.log(query);
+        // console.log(doc.length);
+        if (doc.length == 0) {
+          myResolve(0);
+        }
+        else {
+          var data = ""
+          let wifiMap = new Map();
+          let a = []
+          var count = 0;
+          for (let i = 0; i < doc.length; i++) {
+            data += doc[i].unique_mac_address + ",";
+            // console.log(doc[i].unique_mac_address)
 
+            if (doc.length == i + 1) {
+              var data1 = data.split(',');
+              // console.log(data1.length);
 
-    // console.log(a);
-    var fields = ["date", "des","user"];
-    var csvDau = json2csv({ data: a, fields: fields });
-    // console.log(csvDau);
-    fs.writeFile(config.root + '/server/api/vuscreen/' + 'wifiloginsync.csv', csvDau, function (err) {
-      if (err) {
-        throw err;
-      } else {
-        console.log('file saved');
+              for (let j = 0; j < data1.length; j++) {
+                const element = data1[j];
+
+                wifiMap.set(element, element)
+
+                if (data1.length == j + 1) {
+                  // console.log(wifiMap.size)
+                  count = wifiMap.size
+                  // myResolve(count);
+                  // // function logMapElements(value, key, map) {
+
+                  // //   a.push({ "macaddress": value })
+                  // //   // console.log(`m[${key}] = ${value}`);
+                  // // }
+                  // // wifiMap.forEach(logMapElements);
+                }
+
+              }
+              // console.log(wifiMap);
+              // console.log(wifiMap.size);
+              myResolve(count);
+
+            }
+          }
+        }
       }
-    });
-    // var html = "destination:" + coun;
-    // html += " According To Sync Date"
-    let subject = "Destination Wise Host Wise WIFI Login"
-    // var email = 'manoj.gupta@mobisign.co.in,deepak.kumar@mobisign.co.in,vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in,ataul.khan001@gmail.com'
-    //var email = 'anurag.kumar@spicejet.com,puneet.angrish@spicejet.com,sapna.kumar@spicejet.com,jitendra.gautam@spicejet.com,prashant.mishra4@spicejet.com,sushant.madhab@spicejet.com,manoj.gupta@mobisign.co.in,deepak.kumar@mobisign.co.in,monali.monalisa@mobisign.co.in,product@mobisign.co.in,ashyin.thakral@mobisign.co.in,kedargdr@gmail.com,amajit.das@spicejet.com,nidhi.sinha@spicejet.com,vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-    var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-    EM.dispatchEmail(email, subject, html, "wifisync", function (e) {
-      console.log(e)
     })
   });
-
-}
+};
