@@ -3373,11 +3373,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-<<<<<<< HEAD
       var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title"
-=======
-      var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
       db.get().query(query3, function (err, travel) {
                 if (err) {
           callback(err, null);
@@ -3417,7 +3413,6 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-<<<<<<< HEAD
       var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu,type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
      db.get().query(query7, function (err, menu) {
                        if (err) {
@@ -3430,9 +3425,6 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
     },
     function (callback) {
       var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
-=======
-      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
      db.get().query(query7, function (err, menu) {
                        if (err) {
           callback(err, null);
@@ -3454,12 +3446,8 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
                                           STORE: results[4],
                                           FNB: results[5],
                                           AD: results[6],
-<<<<<<< HEAD
                                           MENU: results[7],
                                           TYPE:results[8]
-=======
-                                          MENU: results[7]
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
                                         }
 
       return res.status(200).json(finalData);
@@ -3468,7 +3456,6 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
 
 
 
-<<<<<<< HEAD
   // var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
   // var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
   // var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
@@ -3532,9 +3519,6 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
   //     })
   //   }
   // })
-=======
- 
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
 }
 // vuscreen_analyticsvu_panl();
 exports.vuscreen_analyticsvu_panlpro = function (req, res) {
@@ -3593,11 +3577,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-<<<<<<< HEAD
           var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
-=======
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
                   db.get().query(query3, function (err, travel) {
                     if (err) {
               callback(err, null);
@@ -3634,7 +3614,6 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
             else {
               callback(null, ad);
-<<<<<<< HEAD
             }
           })
         },function (callback) {
@@ -3658,21 +3637,6 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         }
-=======
-            }
-          })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, menu FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
-          db.get().query(query7, function (err, menu) {
-                           if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, menu);
-            }
-          })
-        },
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
       ],
         function (err, results) {
 
@@ -3685,12 +3649,8 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
                                               STORE: results[4],
                                               FNB: results[5],
                                               AD: results[6],
-<<<<<<< HEAD
                                               MENU: results[7],
                                               TYPE:results[8]
-=======
-                                              MENU: results[7]
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
                                             }
 
           return res.status(200).json(finalData);
@@ -3743,7 +3703,6 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
             else {
               callback(null, pdf);
-<<<<<<< HEAD
             }
           })
         },function (callback) {
@@ -3817,71 +3776,6 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         }
-=======
-            }
-          })
-        },function (callback) {
-          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-    db.get().query(query2, function (err, audio) {
-                 if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, audio);
-            }
-          })
-        },function (callback) {
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-          db.get().query(query3, function (err, travel) {
-                    if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, travel);
-            }
-          })
-        },function (callback) {
-          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-          db.get().query(query4, function (err, store) {
-            if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, store);
-            }
-          })
-        },function (callback) {
-          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-                db.get().query(query5, function (err, fnb) {
-                             if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, fnb);
-            }
-          })
-        },function (callback) {
-          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
-                     db.get().query(query6, function (err, ad) {
-                                                  if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, ad);
-            }
-          })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu FROM spicescreen.vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu";
-          db.get().query(query7, function (err, menu) {
-                           if (err) {
-              callback(err, null);
-            }
-            else {
-              callback(null, menu);
-            }
-          })
-        },
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
       ],
         function (err, results) {
 
@@ -3894,12 +3788,8 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
                                               STORE: results[4],
                                               FNB: results[5],
                                               AD: results[6],
-<<<<<<< HEAD
                                               MENU: results[7],
                                               TYPE:results[8]
-=======
-                                              MENU: results[7]
->>>>>>> d5c15cab5540096426a88e47aa460af699af5dbd
                                             }
 
           return res.status(200).json(finalData);
