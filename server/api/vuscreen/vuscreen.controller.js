@@ -524,14 +524,14 @@ exports.vuscreen_getEventData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM spicescreen.vuscreen_events where sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
-    + "(SELECT COUNT(DISTINCT a.journey_id) FROM spicescreen.vuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%start%')StartCycle,"
-    + "(SELECT COUNT(DISTINCT a.journey_id) FROM spicescreen.vuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%stop%')StopCycle"
+  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_events where sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
+    + "(SELECT COUNT(DISTINCT a.journey_id) FROM pre-prodspicescreenvuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%start%')StartCycle,"
+    + "(SELECT COUNT(DISTINCT a.journey_id) FROM pre-prodspicescreenvuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%stop%')StopCycle"
 
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     else {
-      var query1 = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE  a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' and  a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC"
+      var query1 = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE  a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' and  a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC"
 
       db.get().query(query1, function (err, today) {
         if (err) { return handleError(res, err); }
@@ -719,9 +719,9 @@ exports.vuscreen_getplayData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
-    + "(SELECT ROUND(sum(view_duration/3600)) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalviewDuration"
+  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
+    + "(SELECT ROUND(sum(view_duration/3600)) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalviewDuration"
 
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
@@ -735,13 +735,13 @@ exports.get_Platform_duration = function (req, res) {
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
 
-  var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
+  var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
   // console.log(query2);
   db.get().query(query2, function (err, doc2) {
     if (err) { return handleError(res, err); }
     else {
       // console.log(doc2)
-      var query3 = "SELECT distinct  a.mac from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
+      var query3 = "SELECT distinct  a.mac from pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
      console.log(query3);
       db.get().query(query3, function (err, doc3) {
         if (err) { return handleError(res, err); }
@@ -914,8 +914,8 @@ exports.vuscreen_getGameData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gamehost,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gameuser"
+  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gamehost,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gameuser"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -1073,8 +1073,8 @@ exports.vuscreen_getnested5Data_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5host,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5user"
+  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5host,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5user"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -1256,14 +1256,14 @@ exports.vuscreen_getreadData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(1) FROM spicescreen.vuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audioclick,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audiouser,"
-    + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineclick,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineuser,"
-    + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='pdf' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') magzinedevice,"
-    + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='audio' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') audiodevice,"
-    + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalHOst,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalUser"
+  var query = "select (SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audioclick,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audiouser,"
+    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineclick,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineuser,"
+    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') magzinedevice,"
+    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') audiodevice,"
+    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalHOst,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalUser"
   db.get().query(query, function (err, doc) {
     console.log(doc);
     console.log(err);
@@ -1616,10 +1616,10 @@ exports.vuscreen_getfnbData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) TotalHost,"
-    + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
-    + "(SELECT count(1) FROM spicescreen.vuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE  menu ='f&b' and b.type='Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Veg,"
-    + "(SELECT count(1) FROM spicescreen.vuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE menu ='f&b'and b.type='Non-Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Non_veg"
+  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) TotalHost,"
+    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
+    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE  menu ='f&b' and b.type='Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Veg,"
+    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE menu ='f&b'and b.type='Non-Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Non_veg"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -2586,7 +2586,7 @@ var vuscreen_getFnBIemData_Pagination = function (req, cb) {
   console.log(req.query);
   if (req.query.startDate) { var startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { var endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "SELECT device_id,sync_date, menu, trackingDetails, COUNT(1) as totalRecords, b.title FROM spicescreen.vuscreen_tracker a JOIN vuscreen_fnb_content b ON a.view_id = b.content_id WHERE trackingDetails LIKE '%f&b%' AND a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' GROUP BY sync_date ,menu , b.title,device_id ORDER BY id DESC";
+  var query = "SELECT device_id,sync_date, menu, trackingDetails, COUNT(1) as totalRecords, b.title FROM pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_fnb_content b ON a.view_id = b.content_id WHERE trackingDetails LIKE '%f&b%' AND a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' GROUP BY sync_date ,menu , b.title,device_id ORDER BY id DESC";
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
   db.pagination(query, option, function (err, doc) {
     console.log(doc);
@@ -3155,7 +3155,7 @@ var wifi_login_sync = function (req, res) {
 
   d.setDate(d.getDate() - 1);
   var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date= '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date= '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
 
 
   db.get().query(query, function (err, doc) {
@@ -3243,13 +3243,13 @@ var wifi_login_count = function (req, res) {
   // var Yesterday = moment(d).format('YYYY-MM-DD').toString();
   var Yesterday = "2021-01-24"
 
-  var query1 = "SELECT distinct b.vehicle_no FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query1 = "SELECT distinct b.vehicle_no FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
   db.get().query(query1, function (err, doc1) {
     // console.log(err);
     if (err) { return handleError(res, err); }
     else {
 
-      var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+      var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
       db.get().query(query, function (err, doc) {
         if (err) { return handleError(res, err); }
         else {
@@ -3342,7 +3342,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
 
   async.parallel([
     function (callback) {
-      var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query, function (err, Watch) {
         if (err) {
           callback(err, null);
@@ -3353,7 +3353,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
       })
     },
     function (callback) {
-      var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
   db.get().query(query1, function (err, pdf) {
          if (err) {
           callback(err, null);
@@ -3363,7 +3363,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query2, function (err, audio) {
              if (err) {
           callback(err, null);
@@ -3373,7 +3373,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title"
+      var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title"
       db.get().query(query3, function (err, travel) {
                 if (err) {
           callback(err, null);
@@ -3383,7 +3383,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query4, function (err, store) {
         if (err) {
           callback(err, null);
@@ -3393,7 +3393,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query5, function (err, fnb) {
                          if (err) {
           callback(err, null);
@@ -3403,7 +3403,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
+      var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
       db.get().query(query6, function (err, ad) {
                                               if (err) {
           callback(err, null);
@@ -3413,7 +3413,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
         }
       })
     },function (callback) {
-      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu,type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
+      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu,type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
      db.get().query(query7, function (err, menu) {
                        if (err) {
           callback(err, null);
@@ -3424,7 +3424,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
       })
     },
     function (callback) {
-      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
+      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
      db.get().query(query7, function (err, menu) {
                        if (err) {
           callback(err, null);
@@ -3456,14 +3456,14 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
 
 
 
-  // var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
-  // var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
+  // var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
+  // var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
   // db.get().query(query, function (err, Watch) {
   //   if (err) {
   //     return handleError(res, err);
@@ -3527,7 +3527,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
   // var hostss = " ('1', '2', '3', '4', '5', '6', '8', '10', '11', '13', '14', '15', '17', '18', '20', '22', '23', '26', '29', '32', '33', '35', '36', '37', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '78', '79', '81', '82', '83', '84', '85', '86', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '106', '107', '108', '110', '111', '112', '113', '114', '115', '116', '117', '118', '123', '124', '125', '127', '128', '130', '132', '134', '142', '146', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '163', '164', '169', '171', '172', '173', '174', '175', '177', '180', '181', '184', '185', '186', '188', '190', '191', '192', '193', '194', '195', '196', '197', '198', '199', '200', '201', '203', '205', '206', '207', '208', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '301', '302', '303', '304', '305', '306')"
 
-  var querys = "SELECT count(distinct device_id) as device,sync_date FROM spicescreen.vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+  var querys = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
   db.get().query(querys, function (err, device) {
     // console.log(err);
     if (err) {
@@ -3546,7 +3546,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
 
       async.parallel([
         function (callback) {
-          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query, function (err, Watch) {
             if (err) {
               callback(err, null);
@@ -3557,7 +3557,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
           })
         },
         function (callback) {
-          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query1, function (err, pdf) {
              if (err) {
               callback(err, null);
@@ -3567,7 +3567,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
               db.get().query(query2, function (err, audio) {
                  if (err) {
               callback(err, null);
@@ -3577,7 +3577,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
+          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
                   db.get().query(query3, function (err, travel) {
                     if (err) {
               callback(err, null);
@@ -3587,7 +3587,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query4, function (err, store) {
             if (err) {
               callback(err, null);
@@ -3597,7 +3597,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
                           db.get().query(query5, function (err, fnb) {
                              if (err) {
               callback(err, null);
@@ -3607,7 +3607,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
                               db.get().query(query6, function (err, ad) {
                                                   if (err) {
               callback(err, null);
@@ -3617,7 +3617,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, menu,type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, menu,type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
           db.get().query(query7, function (err, menu) {
                            if (err) {
               callback(err, null);
@@ -3627,7 +3627,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
             }
           })
         },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, type FROM spicescreen.vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
           db.get().query(query7, function (err, menu) {
                            if (err) {
               callback(err, null);
@@ -3668,7 +3668,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
   //var hostss = " ('1', '2', '3', '4', '5', '6', '8', '10', '11', '13', '14', '15', '17', '18', '20', '22', '23', '26', '29', '32', '33', '35', '36', '37', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '78', '79', '81', '82', '83', '84', '85', '86', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '106', '107', '108', '110', '111', '112', '113', '114', '115', '116', '117', '118', '123', '124', '125', '127', '128', '130', '132', '134', '142', '146', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '163', '164', '169', '171', '172', '173', '174', '175', '177', '180', '181', '184', '185', '186', '188', '190', '191', '192', '193', '194', '195', '196', '197', '198', '199', '200', '201', '203', '205', '206', '207', '208', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '301', '302', '303', '304', '305', '306')"
-  var querys = "SELECT count(distinct device_id) as device,sync_date FROM spicescreen.vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+  var querys = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
   db.get().query(querys, function (err, device) {
     console.log(querys);
     if (err) {
@@ -3685,7 +3685,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
 
       async.parallel([
         function (callback) {
-          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
        db.get().query(query, function (err, Watch) {
             if (err) {
               callback(err, null);
@@ -3696,7 +3696,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
           })
         },
         function (callback) {
-          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query1, function (err, pdf) {
              if (err) {
               callback(err, null);
@@ -3706,7 +3706,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
     db.get().query(query2, function (err, audio) {
                  if (err) {
               callback(err, null);
@@ -3716,7 +3716,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
+          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
           db.get().query(query3, function (err, travel) {
                     if (err) {
               callback(err, null);
@@ -3726,7 +3726,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query4, function (err, store) {
             if (err) {
               callback(err, null);
@@ -3736,7 +3736,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
                 db.get().query(query5, function (err, fnb) {
                              if (err) {
               callback(err, null);
@@ -3746,7 +3746,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
                      db.get().query(query6, function (err, ad) {
                                                   if (err) {
               callback(err, null);
@@ -3756,7 +3756,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu,type FROM spicescreen.vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type";
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu,type FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type";
           db.get().query(query7, function (err, menu) {
                            if (err) {
               callback(err, null);
@@ -3766,7 +3766,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
             }
           })
         },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,type FROM spicescreen.vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type";
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,type FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type";
           db.get().query(query7, function (err, menu) {
                            if (err) {
               callback(err, null);
@@ -3799,42 +3799,42 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
 
 
 
-      // var query8 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      // var query8 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
       // db.get().query(query8, function (err, Watch) {
       //   if (err) {
       //     return handleError(res, err);
       //   }
       //   else {
-      //     var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //     var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
       //     db.get().query(query1, function (err, pdf) {
       //       if (err) { return handleError(res, err); }
       //       else {
-      //         var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //         var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //         db.get().query(query2, function (err, audio) {
       //           if (err) { return handleError(res, err); }
       //           else {
-      //             var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //             var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //             db.get().query(query3, function (err, travel) {
       //               if (err) { return handleError(res, err); }
       //               else {
-      //                 var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //                 var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //                 db.get().query(query4, function (err, store) {
       //                   if (err) { return handleError(res, err); }
       //                   else {
-      //                     var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //                     var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //                     db.get().query(query5, function (err, fnb) {
       //                       if (err) { return handleError(res, err); }
       //                       else {
-      //                         var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+      //                         var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
 
       //                         db.get().query(query6, function (err, ad) {
       //                           if (err) { return handleError(res, err); }
       //                           else {
-      //                             var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu FROM spicescreen.vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu";
+      //                             var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu";
       //                             db.get().query(query7, function (err, menu) {
       //                               if (err) { return handleError(res, err); }
       //                               else {
@@ -3884,7 +3884,7 @@ exports.wifi_login = function (req, res) {
 
   //   d.setDate(d.getDate() - 1);
   //   var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
 
   db.get().query(query, function (err, doc) {
     if (err) {
@@ -3995,7 +3995,7 @@ exports.wifi_login_act = function (req, res, next) {
 //  vuscreen_basestation()
 function get_host(startDate, endDate) {
   return new Promise(function (myResolve, myReject) {
-    let query = "SELECT count(distinct device_id) as device,sync_date FROM spicescreen.vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+    let query = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
     db.get().query(query, function (err, device) {
       if (err) { myResolve(err) }
       else {
@@ -4014,7 +4014,7 @@ function get_host(startDate, endDate) {
 //  vuscreen_basestation()
 function get_login(startDate, endDate) {
   return new Promise(function (myResolve, myReject) {
-    let query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+    let query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
     db.get().query(query, function (err, device) {
       if (err) { myResolve(err) }
       else {
@@ -4110,10 +4110,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick"
   
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
@@ -4125,10 +4125,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
         y.setDate(y.getDate() - 2);
         var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
         var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalclicks,"
-          + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='AD' and sync_date='" + Yesterdays + "') TotalAdclick"
+          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalclicks,"
+          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterdays + "') TotalAdclick"
   
   
         //var option = { draw: req.query.draw, start: 0, length: 500 };
@@ -4138,7 +4138,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
   
           }
           else {
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docs) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4184,7 +4184,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
   
             // console.log(doc1);
       
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docsy) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4281,10 +4281,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick"
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
       if (error) {
@@ -4295,10 +4295,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
         y.setDate(y.getDate() - 2);
         var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
         var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchuser,"
-          + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchclick"
+          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchuser,"
+          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchclick"
   
   
         //var option = { draw: req.query.draw, start: 0, length: 500 };
@@ -4310,7 +4310,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
           else {
   
   
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docs) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4352,7 +4352,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
                   }
                 }
   
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
                 db.get().query(query, function (err, docsy) {
                   console.log(err);
                   if (err) { return handleError(res, err); }
@@ -4454,12 +4454,12 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT COUNT(1) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Travelclick,"
-      + "(SELECT COUNT(distinct mac) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Traveluser,"
-      + "(SELECT COUNT(1) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfDownload,"
-      + "(SELECT COUNT(distinct mac) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfUser"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Travelclick,"
+      + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Traveluser,"
+      + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfDownload,"
+      + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfUser"
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
       if (error) {
@@ -4470,12 +4470,12 @@ exports.vuscreen_SmsSummary = function (req, res) {
         y.setDate(y.getDate() - 2);
         var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
         var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT COUNT(1) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Travelclick,"
-          + "(SELECT COUNT(distinct mac) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Traveluser,"
-          + "(SELECT COUNT(1) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfDownload,"
-          + "(SELECT COUNT(distinct mac) FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfUser"
+          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+          + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Travelclick,"
+          + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Traveluser,"
+          + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfDownload,"
+          + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfUser"
   
   
   
@@ -4490,7 +4490,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
           else {
   
   
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docs) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4531,7 +4531,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
                     // console.log(wifiMap.size)
                   }
                 }
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
                 db.get().query(query, function (err, docsy) {
                   console.log(err);
                   if (err) { return handleError(res, err); }
@@ -4629,10 +4629,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick"
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
       if (error) {
@@ -4643,10 +4643,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
         y.setDate(y.getDate() - 2);
         var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
         var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameuser,"
-          + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameclick"
+          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameuser,"
+          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameclick"
   
   
         //var option = { draw: req.query.draw, start: 0, length: 500 };
@@ -4657,7 +4657,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
           }
           else {
   
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docs) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4699,7 +4699,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
                   }
                 }
   
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
                 db.get().query(query, function (err, docsy) {
                   console.log(err);
                   if (err) { return handleError(res, err); }
@@ -4795,10 +4795,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick"
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
       if (error) {
@@ -4809,10 +4809,10 @@ exports.vuscreen_SmsSummary = function (req, res) {
         y.setDate(y.getDate() - 2);
         var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
         var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbuser,"
-          + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbclick"
+          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbuser,"
+          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbclick"
   
   
         //var option = { draw: req.query.draw, start: 0, length: 500 };
@@ -4823,7 +4823,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
           }
           else {
   
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
             db.get().query(query, function (err, docs) {
               console.log(err);
               if (err) { return handleError(res, err); }
@@ -4865,7 +4865,7 @@ exports.vuscreen_SmsSummary = function (req, res) {
                   }
                 }
 
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
                 db.get().query(query, function (err, docsy) {
                   console.log(err);
                   if (err) { return handleError(res, err); }
@@ -4962,43 +4962,43 @@ exports.vuscreen_SmsSummary = function (req, res) {
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
   
     var query = "select"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchdevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbdevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videoclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videouser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videodevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gamedevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineuser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzinedevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audioclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiouser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiodevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifiedclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieduser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieddevice,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialclick,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialuser,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialdevice,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_events where sync_date='" + Yesterday + "') Wifihubstarted,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Wifihubused,"
-      + "(SELECT count(distinct device_id) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(1) FROM spicescreen.vuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
-      + "(SELECT count(distinct mac) FROM spicescreen.vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchdevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbdevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videoclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videouser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videodevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gamedevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineuser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzinedevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audioclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiouser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiodevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifiedclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieduser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieddevice,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialclick,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialuser,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialdevice,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_events where sync_date='" + Yesterday + "') Wifihubstarted,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Wifihubused,"
+      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
+      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin"
     //var option = { draw: req.query.draw, start: 0, length: 500 };
     db.get().query(query, function (error, doc) {
       if (error) {
         console.log(error)
       }         else {
-        var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+        var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
         db.get().query(query, function (err, docs) {
           console.log(err);
           if (err) { return handleError(res, err); }
