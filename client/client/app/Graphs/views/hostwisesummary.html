@@ -1,0 +1,241 @@
+<!--begin row -->
+<div class="row" style="margin-top: 35px;" ng-controller="hostwisesummaryController">
+    <!-- begin col-12 -->
+    <div class="col-md-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <span>{{mvpdateSelector}}</span>
+                    <a id="mvpbardaywise" class="btn btn-xs btn-icon btn-primary"><i class="fa fa-calendar"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default"
+                        data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success"
+                        data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning"
+                        data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger"
+                        data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title" style="display: inline;">Host Wise Summary Analysis Will be displayed
+                    here.</h4>
+                <!-- <span><b>&nbsp;Servers : {{server_count}} Clients : {{client_count}}</b></span> -->
+            </div>
+            <!-- <div class="alert alert-info fade in">
+                <button type="button" class="close" data-dismiss="alert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                Server client connection day wise graph will be displayed here. (* 30 minutes caching)
+            </div> -->
+            <div class="row">
+                <div class="row">
+                    <div id="veil" ng-show='showme'>
+                        <div id="feedLoading" ng-show='showme'>
+                            <i class="fa fa-refresh fa-spin fa-3x"></i>
+                        </div>
+                    </div>
+                <div class="panel-body" style="height:420px;">
+                    <div style='font-size:14px;margin-left: 10px;float: left;'>
+                        <select class="form-control" data-container='body' style="width: 209px;" ng-model="daysfilter"
+                            data-ng-change="getData()">
+                            <option selected="selected" value="">Select Days Filter</option>
+                            <option value='0'>Last 5 Monday</option>
+                            <option value='1'>Last 5 Tuesday</option>
+                            <option value='2'>Last 5 Wednesday</option>
+                            <option value='3'>Last 5 Thursday</option>
+                            <option value='4'>Last 5 Friday</option>
+                            <option value='5'>Last 5 Saturday</option>
+                            <option value='6'>Last 5 Sunday</option>
+                        </select>
+                    </div>
+
+
+                    <div style='font-size:14px;margin-left: 10px;float: left;'>
+                        <select class="form-control" data-container='body' style="width: 209px;" ng-model="hostId"
+                            data-ng-change="getData()">
+                            <option selected="selected" value="">Select Host Filter</option>
+                            <option value='1'>1</option>
+                            <option value='2'>2</option>
+                            <option value='3'>3</option>
+                            <option value='4'>4</option>
+                            <option value='7'>7</option>
+                            <option value='8'>8</option>
+                            <option value='10'>10</option>
+                            <option value='12'>12</option>
+                            <option value='13'>13</option>
+                            <option value='15'>15</option>
+                            <option value='16'>16</option>
+                            <option value='17'>17</option>
+                            <option value='18'>18</option>
+                            <option value='23'>23</option>
+                            <option value='24'>24</option>
+                            <option value='28'>28</option>
+                            <option value='29'>29</option>
+                            <option value='30'>30</option>
+                            <option value='32'>32</option>
+                            <option value='34'>34</option>
+                            <option value='39'>39</option>
+                            <option value='40'>40</option>
+                            <option value='42'>42</option>
+                            <option value='47'>47</option>
+                            <option value='48'>48</option>
+                            <option value='53'>53</option>
+                            <option value='55'>55</option>
+                            <option value='56'>56</option>
+                            <option value='59'>59</option>
+                            <option value='60'>60</option>
+                            <option value='62'>62</option>
+                            <option value='66'>66</option>
+                            <option value='68'>68</option>
+                            <option value='70'>70</option>
+                            <option value='73'>73</option>
+                            <option value='74'>74</option>
+                            <option value='75'>75</option>
+                            <option value='76'>76</option>
+                            <option value='77'>77</option>
+                            <option value='80'>80</option>
+                            <option value='81'>81</option>
+                            <option value='82'>82</option>
+                            <option value='85'>85</option>
+                            <option value='86'>86</option>
+                            <option value='87'>87</option>
+                            <option value='88'>88</option>
+                            <option value='89'>89</option>
+                            <option value='95'>95</option>
+                            <option value='96'>96</option>
+                            <option value='97'>97</option>
+                            <option value='100'>100</option>
+                            <option value='201'>201</option>
+                            <option value='202'>202</option>
+                            <option value='205'>205</option>
+                            <option value='206'>206</option>
+                            <option value='207'>207</option>
+                            <option value='208'>208</option>
+                            <option value='209'>209</option>
+                            <option value='214'>214</option>
+                            <option value='216'>216</option>
+                            <option value='220'>220</option>
+                            <option value='401'>401</option>
+                            <option value='402'>402</option>
+                            <option value='403'>403</option>
+                            <option value='404'>404</option>
+                            <option value='405'>405</option>
+                            <option value='406'>406</option>
+                            <option value='407'>407</option>
+                            <option value='408'>408</option>
+                            <option value='409'>409</option>
+                            <option value='410'>410</option>
+                            <option value='411'>411</option>
+                            <option value='412'>412</option>
+                            <option value='413'>413</option>
+                            <option value='414'>414</option>
+                            <option value='415'>415</option>
+                            <option value='416'>416</option>
+                            <option value='417'>417</option>
+                            <option value='418'>418</option>
+                            <option value='419'>419</option>
+                            <option value='420'>420</option>
+                            <option value='421'>421</option>
+                            <option value='422'>422</option>
+                            <option value='423'>423</option>
+                            <option value='424'>424</option>
+                            <option value='425'>425</option>
+                            <option value='426'>426</option>
+                            <option value='427'>427</option>
+                            <option value='428'>428</option>
+                            <option value='429'>429</option>
+                            <option value='430'>430</option>
+                            <option value='431'>431</option>
+                            <option value='432'>432</option>
+                            <option value='433'>433</option>
+                            <option value='434'>434</option>
+                            <option value='435'>435</option>
+                            <option value='436'>436</option>
+                            <option value='437'>437</option>
+                            <option value='438'>438</option>
+                            <option value='439'>439</option>
+                            <option value='440'>440</option>
+                            <option value='441'>441</option>
+                            <option value='442'>442</option>
+                            <option value='443'>443</option>
+                            <option value='444'>444</option>
+                            <option value='445'>445</option>
+                            <option value='446'>446</option>
+                            <option value='447'>447</option>
+                            <option value='448'>448</option>
+                            <option value='449'>449</option>
+                            <option value='450'>450</option>
+                            <option value='451'>451</option>
+                            <option value='452'>452</option>
+                            <option value='453'>453</option>
+                            <option value='454'>454</option>
+                            <option value='455'>455</option>
+                            <option value='456'>456</option>
+                            <option value='457'>457</option>
+                            <option value='458'>458</option>
+                            <option value='459'>459</option>
+                            <option value='460'>460</option>
+                            <option value='461'>461</option>
+                            <option value='462'>462</option>
+                            <option value='463'>463</option>
+                            <option value='464'>464</option>
+                            <option value='465'>465</option>
+                            <option value='466'>466</option>
+                            <option value='467'>467</option>
+                            <option value='468'>468</option>
+                            <option value='469'>469</option>
+                            <option value='470'>470</option>
+                            <option value='471'>471</option>
+                            <option value='472'>472</option>
+                            <option value='473'>473</option>
+                            <option value='474'>474</option>
+                            <option value='475'>475</option>
+                            <option value='476'>476</option>
+                            <option value='477'>477</option>
+                            <option value='478'>478</option>
+                            <option value='479'>479</option>
+                            <option value='480'>480</option>
+                            <option value='481'>481</option>
+                            <option value='482'>482</option>
+                            <option value='483'>483</option>
+                            <option value='484'>484</option>
+                            <option value='485'>485</option>
+                            <option value='486'>486</option>
+                            <option value='487'>487</option>
+                            <option value='488'>488</option>
+                            <option value='489'>489</option>
+                            <option value='490'>490</option>
+                            <option value='491'>491</option>
+                            <option value='492'>492</option>
+                            <option value='493'>493</option>
+                            <option value='494'>494</option>
+                            <option value='495'>495</option>
+                            <option value='496'>496</option>
+                            <option value='497'>497</option>
+                            <option value='498'>498</option>
+                            <option value='499'>499</option>
+                            <option value='500'>500</option>
+                            <option value='501'>501</option>
+                            <option value='502'>502</option>
+                        </select>
+                    </div>
+                    <!-- <div style='font-size:14px;margin-left: 10px;float: left;'>
+                        <select class="form-control" data-container='body' style="width: 209px;" ng-model="version" data-ng-change="getData()">
+                            <option selected="selected" value="" >Select Version</option>
+                            <option data-ng-repeat="item in versions" value='{{item.version}}' >{{item.version}}</option>
+                        </select>
+                    </div> -->
+                    <!-- <div style='font-size:14px;margin-left: 10px;float: left;'>
+                        <select class="form-control" data-container='body' style="width: 209px;" ng-model="interface1" data-ng-change="getData()"> 
+                            <option selected="selected" value="" >Select Interface</option>
+                            <option value='AN' >AN</option>
+                            <option value='IOS' >IOS</option>
+                        </select>
+                    </div> -->
+                    <div id="mvp-day-bar" class="height-sm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end col-12 -->
+</div>
+<!-- end row

@@ -128,18 +128,35 @@ var eros = new cronJob('00 15 03 * * *', function () {
     controller.erosMovies()
 });
 
+var HostUpdate = new cronJob('00 15 03 * * *', function () {
+    //  var basestation = new cronJob('*/15 * * * * *', function () {
+    controller.hostUpdate()
+});
+
+var HostUpdate = new cronJob('00 15 03 * * *', function () {
+    //  var basestation = new cronJob('*/15 * * * * *', function () {
+    controller.hostUpdate()
+});
+
+var insertTailNo = new cronJob('00 25 03 * * *', function () {
+    //  var basestation = new cronJob('*/15 * * * * *', function () {
+    controller.insertTailNo()
+});
+
 // dauEmailJob.start()
 // playEmailJob.start()
-fnbEmailJob.start()
-topClick.start()
-Analytics.start()
-dauEmaiTemplJob.start()
-dauEmaiwifiView.start()
-dauEmaiwifiSync.start()
-SmsReport.start()
-basestation.start()
-hostNotPlaced.start()
-eros.start();
+// fnbEmailJob.start()
+// HostUpdate.start()
+// topClick.start()
+// Analytics.start()
+// dauEmaiTemplJob.start()
+// dauEmaiwifiView.start()
+// dauEmaiwifiSync.start()
+// SmsReport.start()
+// basestation.start()
+// insertTailNo.start()
+// hostNotPlaced.start()
+// eros.start();
 // vehicleUpdateJob.start()
 // morjob.start()
 // evejob.start()

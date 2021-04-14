@@ -89,11 +89,11 @@ exports.get_duration_static_count = function (req, res) {
 //     var d = new Date();
 //     d.setDate(d.getDate() - 1);
 //     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-//     var query1 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + Yesterday + "' ORDER BY a.id DESC";
+//     var query1 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + Yesterday + "' ORDER BY a.id DESC";
 //     db.get().query(query1, function (err, doc) {
 //       if (err) { return handleError(res, err); }
 //       else {
-//         var query = "SELECT distinct  a.mac from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + Yesterday + "' ORDER BY a.id DESC";
+//         var query = "SELECT distinct  a.mac from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + Yesterday + "' ORDER BY a.id DESC";
 //         db.get().query(query, function (err, doc1) {
 //           if (err) { return handleError(res, err); }
 //           else {
@@ -143,11 +143,11 @@ exports.get_duration_static_count = function (req, res) {
 //     d.setDate(d.getDate() - 1);
 //     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
        
-//             var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + currentDate + "' ORDER BY a.id DESC";
+//             var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + currentDate + "' ORDER BY a.id DESC";
 //             db.get().query(query2, function (err, doc2) {
 //               if (err) { return handleError(res, err); }
 //               else {
-//                 var query3 = "SELECT distinct  a.mac from spicescreen.vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + currentDate + "' ORDER BY a.id DESC";
+//                 var query3 = "SELECT distinct  a.mac from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date = '" + currentDate + "' ORDER BY a.id DESC";
 //                 db.get().query(query3, function (err, doc3) {
 //                   if (err) { return handleError(res, err); }
 //                   else {
@@ -365,120 +365,32 @@ exports.get_wifi_login_count = function (req, res) {
     var d = new Date();
     d.setDate(d.getDate() - 1);
     var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-    var query = "SELECT  event, view_datetime, journey_id,unique_mac_address FROM vuscreen_events  WHERE sync_date = '"+currentDate+"' AND event != 'download' AND event != 'charging' ORDER BY id DESC"
-    db.get().query(query, function (err, today) {
+    
+
+
+    var query = "SELECT "
+    + "(SELECT count(distinct mac) FROM vuscreen_wifilogin where  sync_date='" + currentDate + "'  ) today_user,"
+    + "(SELECT count(distinct mac) FROM vuscreen_wifilogin where  sync_date='" + Yesterday + "' ) yday_user,"
+    + "(SELECT count(distinct mac) FROM vuscreen_wifilogin ) total_user,"
+    + "(SELECT count(distinct sync_date) FROM vuscreen_wifilogin ) unique_day"
+
+
+    db.get().query(query, function (err, result) {
         if (err) { return handleError(res, err); }
         else{
-            var query1 = "SELECT  event, view_datetime, journey_id,unique_mac_address FROM spicescreen.vuscreen_events  WHERE sync_date = '"+Yesterday+"' AND event != 'download' AND event != 'charging' ORDER BY id DESC"
-        db.get().query(query1, function (err, yday) {
-        if (err) { return handleError(res, err); }
-        else{
-            var query2 = "SELECT  event, view_datetime, journey_id,unique_mac_address FROM spicescreen.vuscreen_events   WHERE event != 'download' AND event != 'charging' ORDER BY id DESC"
-            db.get().query(query2, function (err, total) {
-            if (err) { return handleError(res, err); }
-            else{
-                var query3 = "SELECT count(distinct sync_date) as unique_day FROM spicescreen.vuscreen_events   WHERE event != 'download' AND event != 'charging' ORDER BY id DESC"
-            db.get().query(query3, function (err, totalday) {
-            if (err) { return handleError(res, err); }
-            else{
-                var today_user = 0
-                var yday_user = 0
-                var total_user = 0
-                var data = ""
-                let wifiMap = new Map();
-                // let a =  []
-                
-                for (let i = 0; i < today.length; i++) {
-                  data += today[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (today.length == i + 1) {
-                    var data1 = data.split(',');
-                    // console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-                     
-                    
-                      
-                    }
-                    // console.log(wifiMap);
-                    //  console.log(wifiMap.size)
-                     today_user=wifiMap.size
-                  }
+            console.log(result);
+       
+ 
+                var totalavg=(result[0].total_user/result[0].unique_day).toFixed(2);
+
+                var doc={
+                    tlogin:result[0].today_user,
+                    ylogin:result[0].yday_user,
+                    ttlogin:result[0].total_user,
+                    avg: totalavg
                 }
-    
-    
-                var datas = ""
-                let wifiMaps = new Map();
-                // let a =  []
-              
-                for (let i = 0; i < yday.length; i++) {
-                    datas += yday[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (yday.length == i + 1) {
-                    var data1 = datas.split(',');
-                    // console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMaps.set(element, element)
-                     
-                    
-                      
-                    }
-                    // console.log(wifiMap);
-                    //  console.log(wifiMap.size)
-                     yday_user=wifiMaps.size
-                  }
-                }
-    
-                
-                var datat = ""
-                let wifiMapsd = new Map();
-                // let a =  []
-              
-                for (let i = 0; i < total.length; i++) {
-                    datat += total[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (total.length == i + 1) {
-                    var data1 = datat.split(',');
-                    // console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMapsd.set(element, element)
-                     
-                    
-                      
-                    }
-                    // console.log(wifiMap);
-                     console.log(wifiMapsd.size)
-                    total_user=wifiMapsd.size
-                  }
-                }
-    var totalavg=(total_user/totalday[0].unique_day).toFixed(2);
-    
-                    var doc={
-                        tlogin:today_user,
-                        ylogin:yday_user,
-                        ttlogin:total_user,
-                        avg: totalavg
-                    }
-                   
-                return res.status(200).json(doc);
-            }
-            })
-            }
-            })
-        }
-            })
+               
+            return res.status(200).json(doc);
         }
             
         
@@ -553,7 +465,7 @@ exports.get_Platform_durations = function (req, res, next) {
 
   function insertSignup(currentDate) {
     return new Promise(function (myResolve, myReject) {
-      let query = "SELECT distinct  mac, platform_duration, view_datetime,sync_datetime from spicescreen.vuscreen_tracker  WHERE sync_date = '" + currentDate + "' ORDER BY id DESC";  
+      let query = "SELECT distinct  mac, platform_duration, view_datetime,sync_datetime from  vuscreen_tracker  WHERE sync_date = '" + currentDate + "' ORDER BY id DESC";  
       db.get().query(query, function (err, doc) {
         if (err) { myResolve(err) }
         else {
@@ -566,7 +478,7 @@ exports.get_Platform_durations = function (req, res, next) {
   }
   function insertSignup1(currentDate) {
     return new Promise(function (myResolve, myReject) {
-      let query = "SELECT distinct  mac from spicescreen.vuscreen_tracker  WHERE sync_date = '" + currentDate + "' ORDER BY id DESC";  
+      let query = "SELECT distinct  mac from  vuscreen_tracker  WHERE sync_date = '" + currentDate + "' ORDER BY id DESC";  
       db.get().query(query, function (err, doc) {
         if (err) { myResolve(err) }
         else {

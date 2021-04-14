@@ -501,10 +501,13 @@ var vuscreen_getAllEventsData_Pagination = function (req, cb) {
     + " ve.longitude,"
     + " ve.sync_latitude,"
     + " ve.sync_longitude,"
+    + " ve.tail_number,"
+    + " ve.location_selection,"
     + " ve.journey_id,"
     + " ve.sync_type,"
     + " ve.unique_mac_address,"
-    + "ve.home_page_user"
+    + "ve.home_page_user,"
+    + "ve.home_page_user_mac"
     + " from"
     + " vuscreen_events ve"
     + " LEFT JOIN"
@@ -524,51 +527,18 @@ exports.vuscreen_getEventData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_events where sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
-    + "(SELECT COUNT(DISTINCT a.journey_id) FROM pre-prodspicescreenvuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%start%')StartCycle,"
-    + "(SELECT COUNT(DISTINCT a.journey_id) FROM pre-prodspicescreenvuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%stop%')StopCycle"
+  var query = "select (SELECT count(distinct device_id) FROM  vuscreen_events where sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
+    + "(SELECT COUNT(DISTINCT a.journey_id) FROM  vuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%start%')StartCycle,"
+    + "(SELECT COUNT(DISTINCT a.journey_id) FROM  vuscreen_events a  JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "'  and a.event like '%stop%')StopCycle,"
+    + "(SELECT sum(home_page_user) FROM  vuscreen_events WHERE sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "' ) HomepageUser,"
+    + "(SELECT count(distinct mac) FROM vuscreen_wifilogin where  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totaluser"
 
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     else {
-      var query1 = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE  a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' and  a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC"
-
-      db.get().query(query1, function (err, today) {
-        if (err) { return handleError(res, err); }
-        else {
-          var today_user = 0
-
-          var data = ""
-          let wifiMap = new Map();
-          // let a =  []
-
-          for (let i = 0; i < today.length; i++) {
-            data += today[i].unique_mac_address + ",";
-            // console.log(doc[i].unique_mac_address)
-
-            if (today.length == i + 1) {
-              var data1 = data.split(',');
-              // console.log(data1.length);
-
-              for (let j = 0; j < data1.length; j++) {
-                const element = data1[j];
-
-                wifiMap.set(element, element)
-
-
-
-              }
-              // console.log(wifiMap);
-              //  console.log(wifiMap.size)
-              today_user = wifiMap.size
-            }
-          }
-          doc[0].totaluser = today_user
-          console.log(doc);
-
+      
           return res.status(200).json(doc);
-        }
-      })
+        
     }
   })
 };
@@ -587,8 +557,8 @@ exports.vuscreen_events_index = function (req, res) {
 exports.vuscreen_events_export_csv = function (req, res) {
   // var fields = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
   // var fieldversions = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
-  var fields = ["vehicle_no", "source", "destination", "sync_date", "sync_time", "view_date", "view_time", "unique_mac_address", "event", "battery_level", "number_of_unique_user", "home_page_user", "journey_id", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type", "model", "reg_id", "version"];
-  var fieldversions = ["vehicle_no", "source", "destination", "sync_date", "sync_time", "view_date", "view_time", "unique_mac_address", "event", "battery_level", "number_of_unique_user", "home_page_user", "journey_id", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type", "model", "reg_id", "version"];
+  var fields = ["vehicle_no", "source", "destination", "sync_date", "view_datetime", "event", "battery_level", "number_of_unique_user", "home_page_user", "journey_id", "sync_latitude", "sync_longitude", "tail_number", "location_selection", "model",  "reg_id", "device_id", "user", "sync_type", "interface", "version", "unique_mac_address"];
+  var fieldversions = ["vehicle_no", "source", "destination", "sync_date", "view_datetime", "event", "battery_level", "number_of_unique_user", "home_page_user", "journey_id", "sync_latitude", "sync_longitude",  "tail_number", "location_selection", "model", "reg_id", "device_id", "user", "sync_type", "interface", "version", "unique_mac_address"];
   var name = 'events_' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -719,9 +689,9 @@ exports.vuscreen_getplayData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
-    + "(SELECT ROUND(sum(view_duration/3600)) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalviewDuration"
+  var query = "select (SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalhost,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
+    + "(SELECT ROUND(sum(view_duration/3600)) FROM  vuscreen_tracker where menu='WATCH' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) totalviewDuration"
 
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
@@ -735,14 +705,14 @@ exports.get_Platform_duration = function (req, res) {
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
 
-  var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
+  var query2 = " SELECT distinct  a.mac, a.platform_duration, a.view_datetime,a.sync_datetime from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
   // console.log(query2);
   db.get().query(query2, function (err, doc2) {
     if (err) { return handleError(res, err); }
     else {
       // console.log(doc2)
-      var query3 = "SELECT distinct  a.mac from pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
-     console.log(query3);
+      var query3 = "SELECT distinct  a.mac from  vuscreen_tracker a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' ORDER BY a.id DESC";
+      console.log(query3);
       db.get().query(query3, function (err, doc3) {
         if (err) { return handleError(res, err); }
         else {
@@ -762,9 +732,9 @@ exports.get_Platform_duration = function (req, res) {
               }
 
             }
-            let test=parseInt(data)
-            if (count == 1  && test <=10000000) {
-            
+            let test = parseInt(data)
+            if (count == 1 && test <= 10000000000) {
+
               tday += parseInt(data);
               // console.log(data);
               // console.log(tday);
@@ -805,8 +775,8 @@ exports.vuscreen_tracker_export_csv = function (req, res) {
   // var fieldversions = ["reg_id", "mac", "vehicle_no", "session_id", "title", "genre", "view_duration", "model", "view_date", "view_time", "sync_date", "sync_time", "user_agent","play_duration","sync_type","platform_duration"];
 
 
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "play_duration", "platform_duration", "sync_type", "genre", "model", "user_agent", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "play_duration", "platform_duration", "sync_type", "genre", "model", "user_agent", "session_id", "reg_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "play_duration", "platform_duration", "menu", "mac", "journey_id", "user_agent", "genre", "folder", "sync_type", "type", "device_id", "interface", "version", "reg_id"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "play_duration", "platform_duration", "menu", "mac", "journey_id", "user_agent", "genre", "folder", "sync_type", "type", "device_id", "interface", "version", "reg_id"];
   var name = 'tracker' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -914,8 +884,8 @@ exports.vuscreen_getGameData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gamehost,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gameuser"
+  var query = "select (SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gamehost,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='STORE' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) gameuser"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -938,8 +908,8 @@ exports.vuscreen_game_index = function (req, res) {
 
 //export csv function for game logs
 exports.vuscreen_game_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "genre", "model", "user_agent", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "genre", "model", "user_agent", "session_id", "reg_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "play_duration", "mac", "journey_id", "sync_type", "device_id", "version", "reg_id", "user_agent"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "play_duration", "mac", "journey_id", "sync_type", "device_id", "version", "reg_id", "user_agent"];
   var name = 'game' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -1004,7 +974,7 @@ var vuscreen_nested5Data_Pagination = function (req, cb) {
     + " account_management am ON vst.partner = am.id"
     + " where vst.menu = 'NESTED5' AND vst.sync_date>='" + startDate + "' AND vst.sync_date<='" + endDate + "' AND vst.partner = '" + req.user.partner_id + "'" + filter
     + " order by vst.id desc"
-    console.log(query);
+  console.log(query);
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
   db.pagination(query, option, function (err, doc) {
     return cb(err, doc);
@@ -1073,8 +1043,8 @@ exports.vuscreen_getnested5Data_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5host,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5user"
+  var query = "select (SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5host,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='NESTED5' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) nested5user"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -1149,8 +1119,8 @@ exports.vuscreen_ads_index = function (req, res) {
 
 //export csv function for  ads logs
 exports.vuscreen_ads_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "view_datetime", "view_duration", "type", "view_model", "model", "device_id", "view_android_id", "interface", "version", "reg_id", "session_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "view_datetime", "view_duration", "type", "view_model", "model", "device_id", "view_android_id", "interface", "version", "reg_id", "session_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "mac", "journey_id", "sync_type", "type", "device_id", "version", "reg_id", "user_agent"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "mac", "journey_id", "sync_type", "type", "device_id", "version", "reg_id", "user_agent"];
   var name = 'ads' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -1256,14 +1226,14 @@ exports.vuscreen_getreadData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audioclick,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audiouser,"
-    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineclick,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineuser,"
-    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') magzinedevice,"
-    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') audiodevice,"
-    + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalHOst,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalUser"
+  var query = "select (SELECT count(1) FROM  vuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audioclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='audio' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) audiouser,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='pdf' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) magzineuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='pdf' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') magzinedevice,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='audio' and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') audiodevice,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalHOst,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type in ('audio','pdf') and  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "') TotalUser"
   db.get().query(query, function (err, doc) {
     console.log(doc);
     console.log(err);
@@ -1284,8 +1254,8 @@ exports.vuscreen_read_index = function (req, res) {
 
 //export csv function for read logs
 exports.vuscreen_read_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "type", "mac", "journey_id", "user_agent", "device_id", "version", "sync_type", "reg_id"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "type", "mac", "journey_id", "user_agent", "device_id", "version", "sync_type", "reg_id"];
   var name = 'read' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -1377,7 +1347,7 @@ var vuscreen_getTravelData_Pagination = function (req, cb) {
     + " account_management am ON vst.partner = am.id"
     + " LEFT JOIN "
     + " vuscreen_registration vr ON vst.reg_id = vr.reg_id"
-    + " where vst.menu in('TRAVEL','PDFDOWNLOAD') and vst.type='Travel' AND vst.sync_date>='" + startDate + "' AND vst.sync_date<='" + endDate + "' AND vst.partner = '" + req.user.partner_id + "'" + filter
+    + " where vst.menu in('TRAVEL','PDFDOWNLOAD') AND vc.status = '1' AND vst.sync_date>='" + startDate + "' AND vst.sync_date<='" + endDate + "' AND vst.partner = '" + req.user.partner_id + "'" + filter
     + " order by vst.view_datetime desc,vst.sync_datetime"
   console.log(query)
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
@@ -1397,8 +1367,8 @@ exports.vuscreen_travel_index = function (req, res) {
 
 //export csv function for travel logs
 exports.vuscreen_travel_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "title", "view_datetime", "sync_date", "view_duration", "source", "destination", "mac", "menu", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "user_agent", "reg_id", "session_id"];
-  var fieldversions = ["vehicle_no", "title", "view_datetime", "sync_date", "view_duration", "source", "destination", "mac", "menu", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "user_agent", "reg_id", "session_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "menu", "mac", "version", "device_id", "reg_id", "user_agent"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "view_datetime", "sync_date", "view_duration", "menu", "mac", "version", "device_id", "reg_id", "user_agent"];
   var name = 'travel' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -1603,7 +1573,7 @@ var vuscreen_getFnBData_Pagination = function (req, cb) {
     + " account_management am ON vst.partner = am.id"
     + " LEFT JOIN "
     + " vuscreen_registration vr ON vst.reg_id = vr.reg_id"
-    + " where vst.menu in('F&B','FNB','CART')  AND vst.sync_date>='" + startDate + "' AND vst.sync_date<='" + endDate + "' AND vst.partner = '" + req.user.partner_id + "'" + filter
+    + " where vst.menu in('F&B','FNB','CART') AND vc.status = '1'  AND vst.sync_date>='" + startDate + "' AND vst.sync_date<='" + endDate + "' AND vst.partner = '" + req.user.partner_id + "'" + filter
     + " order by vst.view_datetime desc,vst.sync_datetime"
   console.log(query)
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
@@ -1616,10 +1586,10 @@ exports.vuscreen_getfnbData_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "select (SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) TotalHost,"
-    + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
-    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE  menu ='f&b' and b.type='Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Veg,"
-    + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE menu ='f&b'and b.type='Non-Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Non_veg"
+  var query = "select (SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) TotalHost,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='fnb' and sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' ) Totaluser,"
+    + "(SELECT count(1) FROM  vuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE  menu ='f&b' and b.type='Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Veg,"
+    + "(SELECT count(1) FROM  vuscreen_tracker as a join vuscreen_fnb_content as b on a.view_id=b.content_id WHERE menu ='f&b'and b.type='Non-Veg' and a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "')Non_veg"
   db.get().query(query, function (err, doc) {
     if (err) { return handleError(res, err); }
     return res.status(200).json(doc);
@@ -1639,8 +1609,8 @@ exports.vuscreen_FnB_index = function (req, res) {
 
 //export csv function for FnB logs
 exports.vuscreen_FnB_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "view_datetime", "type", "user_agent", "view_duration", "play_duration", "view_model", "model", "view_android_id", "interface", "version", "sync_type", "device_id", "genre", "reg_id", "session_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "view_datetime", "type", "user_agent", "view_duration", "play_duration", "view_model", "model", "view_android_id", "interface", "version", "sync_type", "device_id", "genre", "reg_id", "session_id"];
+  var fields = ["vehicle_no", "source", "destination", "title", "sync_date", "view_datetime", "type", "menu", "mac", "journey_id", "trackingDetails", "sync_type", "device_id", "version", "reg_id", "user_agent"];
+  var fieldversions = ["vehicle_no", "source", "destination", "title", "sync_date", "view_datetime", "type", "menu", "mac", "journey_id", "trackingDetails", "sync_type", "device_id", "version", "reg_id", "user_agent"];
   var name = 'FnB' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
@@ -2203,6 +2173,340 @@ exports.edit_registration = function (req, res) {
 }
 
 
+
+
+
+// Get list of Knowlarity event logs
+var vuscreen_getAllDatak_Pagination = function (req, cb) {
+  var startDate = 'null', endDate = 'null';
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+  // var filter = '';
+
+  // if (req.query.device_id) { filter = " AND ve.device_id ='" + req.query.device_id + "'" }
+  // if (req.query.interface) { filter = " AND ve.interface ='" + req.query.interface + "'" }
+  // if (req.query.version) { filter = " AND ve.version ='" + req.query.version + "'" }
+  // if (req.query.session_id) { filter = " AND ve.session_id ='" + req.query.session_id + "'" }
+  // if (req.query.user) { filter = " AND ve.user ='" + req.query.user + "'" }
+  // if (req.query.event) { filter = " AND ve.event ='" + req.query.event + "'" }
+  // if (req.query.vehicle_no) { filter = " AND vr.vehicle_no ='" + req.query.vehicle_no + "'" }
+  // if (req.query.reg_id) { filter = " AND vr.reg_id ='" + req.query.reg_id + "'" }
+  // + filter
+  var query = "select * from  "
+    + "Knowlarity_Passcode"
+    + " where text like 'IFE%' and  sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "'"
+    + " order by id desc"
+  var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
+  db.pagination(query, option, function (err, doc) {
+    // console.log(doc);
+    // console.log(doc.length);
+
+    var finalData = {
+      draw:doc.draw,
+      recordsTotal:doc.recordsTotal,
+      recordsFiltered:doc.recordsFiltered,
+      data:[]
+    }
+    for (let i = 0; i < doc.data.length; i++) {
+      // console.log("jihhljhukbgiygbkhv");
+
+      var element = doc.data[i].text.split(",");
+      // console.log(element.length);
+      if (element.length == 6) {
+
+
+        // console.log(element);
+        let host = element[0].split("-");
+        let lat = element[1].split("-");
+        let long = element[2].split("-");
+        let stat = element[3].split("-");
+        let battery = element[4].split("-");
+        // console.log(stat[0])
+        let state = stat[0].replace(/\n/g, '');
+        // console.log(state);
+        if (state == "Start") {
+          // console.log(state)
+
+          let mid = {
+            hostNo: host[1],
+            lat: lat[1],
+            long: long[1],
+            start: stat[1],
+            stop: "-",
+            battery: battery[1]
+
+          } 
+
+          finalData.data.push(mid);
+        }
+
+        else if (state == "Stop") {
+
+          let mid = {
+            hostNo: host[1],
+            lat: lat[1],
+            long: long[1],
+            start: "-",
+            stop: stat[1],
+            battery: battery[1]
+
+          }
+
+          finalData.data.push(mid);
+        }
+      }
+      if(i+1==doc.data.length){
+        console.log(finalData);
+        // console.log(finalData);
+        return cb(err, finalData);
+      }
+    }
+
+  })
+};
+// vuscreen_getAllDatak_Pagination();
+
+// Get list of Knowlarity Analysis logs
+exports.vuscreen_Knowlarity_index = function (req, res) {
+  vuscreen_getAllDatak_Pagination(req, function (err, doc) {
+    if (err) { return handleError(res, err); }
+    else
+      return res.status(200).json(doc);
+
+  })
+};
+
+//export csv function for Knowlarity Analysis logs
+exports.vuscreen_Knowlarity_export_csv = function (req, res) {
+  // var fields = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
+  // var fieldversions = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
+  var fields = ["hostNo","lat","long","start","stop","battery"];
+  var fieldversions = ["hostNo","lat","long","start","stop","battery"];
+  var name = 'smshostreport_' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
+  res.write(fields.join(","));
+
+  function pagination() {
+    vuscreen_getAllEventsData_Pagination(req, function (err, doc) {
+      if (doc.data.length > 0) {
+        req.query.start = parseInt(req.query.start) + parseInt(req.query.length);
+        var row = '';
+        for (var i = 0; i < doc.data.length; i++) {
+
+          var sp = doc.data[i].event.split("|");
+
+          if (sp.length == 1) {
+            doc.data[i].event = sp[0];
+            doc.data[i].battery = "-";
+            doc.data[i].userConnected = "-";
+          }
+          if (sp.length == 2) {
+            doc.data[i].event = sp[0];
+            doc.data[i].battery = sp[1];
+            doc.data[i].userConnected = "-";
+          }
+          if (sp.length == 3) {
+            doc.data[i].event = sp[0];
+            doc.data[i].battery = sp[1];
+            doc.data[i].userConnected = sp[2];
+          }
+          var json = doc.data[i];
+
+          var col = '';
+          for (var x = 0; x < fields.length; x++) {
+            var val = json[fields[x]];
+            if (val) {
+              val = val.toString().replace(/,/g, ' ').replace(/"/g, ' ');
+            }
+            if (val == '' || typeof (val) == 'undefined' || val == null) { val = ' '; };
+            if (fields[x] == 'sync_datetime') { val = moment(val).format('YYYY-MM-DD HH:mm:ss ').toString() };
+            if (col == '') {
+              col = val;
+            } else {
+              col = col + ',' + val;
+            }
+          };
+          if (row == '') { row = col; }
+          else { row = row + '\r\n' + col; }
+        };
+        res.write('\r\n');
+        res.write(row);
+        pagination();
+      } else {
+        res.end();
+      }
+    })
+  }
+  pagination();
+}
+
+
+
+// Get list of Knowlarity analytics  logs
+var vuscreen_getAllData_Knowlarity_Pagination = function (req, cb) {
+  var startDate = 'null', endDate = 'null';
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+  // var filter = '';
+
+  // if (req.query.device_id) { filter = " AND ve.device_id ='" + req.query.device_id + "'" }
+  // if (req.query.interface) { filter = " AND ve.interface ='" + req.query.interface + "'" }
+  // if (req.query.version) { filter = " AND ve.version ='" + req.query.version + "'" }
+  // if (req.query.session_id) { filter = " AND ve.session_id ='" + req.query.session_id + "'" }
+  // if (req.query.user) { filter = " AND ve.user ='" + req.query.user + "'" }
+  // if (req.query.event) { filter = " AND ve.event ='" + req.query.event + "'" }
+  // if (req.query.vehicle_no) { filter = " AND vr.vehicle_no ='" + req.query.vehicle_no + "'" }
+  // if (req.query.reg_id) { filter = " AND vr.reg_id ='" + req.query.reg_id + "'" }
+  // + filter
+  var query = "select * from  "
+    + "Knowlarity_Passcode"
+    + " where text like 'H%' and  sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "'"
+    + " order by id desc"
+  var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
+  db.pagination(query,option,  function (err, doc) {
+    // console.log(doc[0].text.split(","));
+    var finalData = {
+      draw:doc.draw,
+      recordsTotal:doc.recordsTotal,
+      recordsFiltered:doc.recordsFiltered,
+      data:[]
+    }
+    for (let i = 0; i < doc.data.length; i++) {
+      var element = doc.data[i].text.split(",");
+      // console.log(element.length);
+      if (element.length == 22) {
+
+
+        // console.log(element);
+        let host = element[0].split("-");
+        let version = element[1].split("-");
+        let jsonUpdateDate = element[2].split("-");
+        let jsonUpdateTime = element[3];
+        let startDate = element[4];
+        let startTime = element[5].split("-");
+        let stopTime = element[6];
+        let state = element[7].replace(/\n/g, '');
+        let source=state.split("-");
+        let destination=element[8].split("-");
+        let wifiUser=element[9].split("-");
+        let h = element[10].replace(/\n/g, '');
+        let watchUser=h.split("-");
+        let watchClick=element[11];
+        let gameUser=element[12].split("-");
+        let gameClick=element[13];
+        let fnbUser=element[14].split("-");
+        let fnbClick=element[15];
+        let travelUser=element[16].split("-");
+        let travelClick=element[17];
+        let pdfUser=element[18].split("-");
+        let pdfClick=element[19];
+        let ac = element[20].replace(/\n/g, '');
+        let adClick=ac.split("-");
+       // console.log(state);
+
+          let mid = {
+            hostNo: host[1],
+            version: version[1],
+            jsonUpdateDate: jsonUpdateDate[1],
+            jsonUpdateTime: jsonUpdateTime,
+            startDate: startDate,
+            startTime: startTime[1],
+            stopTime:stopTime,
+            source:source[1],
+            destination:destination[1],
+            wifiUser:wifiUser[1],
+            watchUser:watchUser[1],
+            watchClick:watchClick,
+            gameUser:gameUser[1],
+            gameClick:gameClick,
+            fnbUser:fnbUser[1],
+            fnbClick:fnbClick,
+            travelUser:travelUser[1],
+            travelClick:travelClick,
+            pdfUser:pdfUser[1],
+            pdfClick:pdfClick,
+            adClick:adClick[1]
+
+
+
+          }
+
+          finalData.data.push(mid);
+        
+
+    
+      }
+    }
+    // console.log(finalData);
+    return cb(err, finalData);
+  })
+};
+// vuscreen_getAllData_Pagination();
+
+// Get list of Knowlarity Analysis logs
+exports.vuscreen_Knowlarity_ana_index = function (req, res) {
+  vuscreen_getAllData_Knowlarity_Pagination(req, function (err, doc) {
+    if (err) { return handleError(res, err); }
+    else
+      return res.status(200).json(doc);
+
+  })
+};
+
+//export csv function for Knowlarity Analysis logs
+exports.vuscreen_Knowlarity_ana_export_csv = function (req, res) {
+  // var fields = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
+  // var fieldversions = ["journey_id", "vehicle_no", "reg_id", "user", "event", "model", "view_date", "view_time", "sync_date", "sync_time", "latitude", "longitude", "sync_latitude", "sync_longitude", "sync_type"];
+  var fields = ["hostNo","source","destination","startDate","startTime","stopTime","wifiUser","watchUser","watchClick","adClick","pdfUser","pdfClick","travelUser","travelClick","gameUser","gameClick","fnbUser","fnbClick","version","jsonUpdateDate","jsonUpdateTime"];
+  var fieldversions = ["hostNo","source","destination","startDate","startTime","stopTime","wifiUser","watchUser","watchClick","adClick","pdfUser","pdfClick","travelUser","travelClick","gameUser","gameClick","fnbUser","fnbClick","version","jsonUpdateDate","jsonUpdateTime"];
+  var name = 'smsleadreport_' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
+  res.write(fields.join(","));
+
+  function pagination() {
+    vuscreen_getAllData_Knowlarity_Pagination(req, function (err, doc) {
+      if (doc.data.length > 0) {
+        req.query.start = parseInt(req.query.start) + parseInt(req.query.length);
+        var row = '';
+        for (var i = 0; i < doc.data.length; i++) {
+          var json = doc.data[i];
+          var col = '';
+          for (var x = 0; x < fields.length; x++) {
+            var val = json[fields[x]];
+            if (val) {
+              val = val.toString().replace(/,/g, ' ').replace(/"/g, ' ');
+            }
+            if (val == '' || typeof (val) == 'undefined' || val == null) { val = ' '; };
+            if (fields[x] == 'sync_datetime') { val = moment(val).format('YYYY-MM-DD HH:mm:ss ').toString() };
+            if (col == '') {
+              col = val;
+            } else {
+              col = col + ',' + val;
+            }
+          };
+          if (row == '') { row = col; }
+          else { row = row + '\r\n' + col; }
+        };
+        res.write('\r\n');
+        res.write(row);
+        pagination();
+      } else {
+        res.end();
+      }
+    })
+  }
+  pagination();
+}
+
+// vuscreen_getAllData_Knowlarity_Pagination();
+
+
+
+
+
+
 // send sms
 exports.send_sms = function (req, res) {
   var number = req.query.number;
@@ -2288,7 +2592,7 @@ var vuscreen_getMobileData_Pagination = function (req, cb) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
- 
+
 
   var query = `select * from club_registration  where sync_date>='${startDate}' and sync_date <= '${endDate}' order by id desc`
   console.log(query)
@@ -2307,8 +2611,8 @@ exports.vuscreen_mobile_index = function (req, res) {
   vuscreen_getMobileData_Pagination(req, function (err, doc) {
     if (err) { return handleError(res, err); }
     else
-console.log(doc);
-      return res.status(200).json(doc);
+      console.log(doc);
+    return res.status(200).json(doc);
 
   })
 };
@@ -2316,9 +2620,9 @@ console.log(doc);
 
 //export csv function for mobile logs
 exports.vuscreen_mobile_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
-  var name = 'read' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  var fields = ["hostId", "source", "destination", "title", "type", "mobile", "email", "sync_date", "sync_datetime", "latitude", "longitude", "mac_address", "journey_id", "user_name", "card_type", "dob", "gender", "_id", "time", "sync_timestamp", "id", "ad_id"];
+  var fieldversions = ["hostId", "source", "destination", "title", "type", "mobile", "email", "sync_date", "sync_datetime", "latitude", "longitude", "mac_address", "journey_id", "user_name", "card_type", "dob", "gender", "_id", "time", "sync_timestamp", "id", "ad_id"];
+  var name = 'mobile' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
   res.write(fieldversions.join(","));
@@ -2358,16 +2662,85 @@ exports.vuscreen_mobile_export_csv = function (req, res) {
   pagination();
 }
 
+// Get list of Open form data
+var vuscreen_getOpenFormData_Pagination = function (req, cb) {
+  var startDate = 'null', endDate = 'null';
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
 
+
+  var query = `select * from club_registration  where sync_date>='${startDate}' and sync_date <= '${endDate}' order by id desc`
+  console.log(query)
+  var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
+  console.log(option)
+  db.pagination(query, option, function (err, doc) {
+    console.log(err);
+    console.log(doc)
+    return cb(err, doc);
+  })
+};
+
+exports.vuscreen_openform_index = function (req, res) {
+  vuscreen_getOpenFormData_Pagination(req, function (err, doc) {
+    if (err) { return handleError(res, err); }
+    else
+      console.log(doc);
+    return res.status(200).json(doc);
+
+  })
+};
+
+exports.vuscreen_openform_export_csv = function (req, res) {
+  var fields = ["hostId", "source", "destination", "title", "type", "sync_date", "sync_datetime", "category", "father_name", "mother_name", "student_class", "school_name", "school_board", "city", "state", "pincode", "performance", "tutions", "studies", "mac_address", "journey_id"];
+  var fieldversions = ["hostId", "source", "destination", "title", "type", "sync_date", "sync_datetime", "category", "father_name", "mother_name", "student_class", "school_name", "school_board", "city", "state", "pincode", "performance", "tutions", "studies", "mac_address", "journey_id"];
+  var name = 'mobile' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
+  res.write(fieldversions.join(","));
+
+  function pagination() {
+    vuscreen_getOpenFormData_Pagination(req, function (err, doc) {
+      if (doc.data.length > 0) {
+        req.query.start = parseInt(req.query.start) + parseInt(req.query.length);
+        var row = '';
+        for (var i = 0; i < doc.data.length; i++) {
+          var json = doc.data[i];
+          var col = '';
+          for (var x = 0; x < fields.length; x++) {
+            var val = json[fields[x]];
+            if (val) {
+              val = val.toString().replace(/,/g, ' ').replace(/"/g, ' ');
+            }
+            if (val == '' || typeof (val) == 'undefined' || val == null) { val = ' '; };
+            if (fields[x] == 'sync_datetime') { val = moment(val).format('YYYY-MM-DD HH:mm:ss ').toString() };
+            if (col == '') {
+              col = val;
+            } else {
+              col = col + ',' + val;
+            }
+          };
+          if (row == '') { row = col; }
+          else { row = row + '\r\n' + col; }
+        };
+        res.write('\r\n');
+        res.write(row);
+        pagination();
+      } else {
+        res.end();
+      }
+    })
+  }
+  pagination();
+}
 
 // Get list of coupon logs
 var vuscreen_getCouponData_Pagination = function (req, cb) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
- 
 
-  var query = `SELECT a.*,b.title as TITLE FROM coupon_history as a join vuscreen_travel_content as b on a.coupon_id=b.content_id  where a.sync_date>='${startDate}' and a.sync_date <= '${endDate}' order by id desc`
+
+  var query = `SELECT a.* FROM coupon_history as a join vuscreen_travel_content as b on a.coupon_id=b.content_id  where a.sync_date>='${startDate}' and a.sync_date <= '${endDate}' order by id desc`
   console.log(query)
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
   console.log(option)
@@ -2384,7 +2757,7 @@ exports.vuscreen_coupon_index = function (req, res) {
   vuscreen_getCouponData_Pagination(req, function (err, doc) {
     if (err) { return handleError(res, err); }
     else
-// console.log(doc);
+      // console.log(doc);
       return res.status(200).json(doc);
 
   })
@@ -2393,15 +2766,15 @@ exports.vuscreen_coupon_index = function (req, res) {
 
 //export csv function for coupon logs
 exports.vuscreen_coupon_export_csv = function (req, res) {
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "type", "sync_date", "view_datetime", "view_duration", "user_agent", "device_id", "genre", "view_model", "model", "view_android_id", "interface", "version", "session_id", "reg_id"];
-  var name = 'read' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  var fields = ["hostId", "source", "destination", "title", "sync_date", "coupon_code", "coupon_type", "mobile", "status", "latitude", "longitude", "journey_id", "mac_address"];
+  var fieldversions = ["hostId", "source", "destination", "title", "sync_date", "coupon_code", "coupon_type", "mobile", "status", "latitude", "longitude", "journey_id", "mac_address"];
+  var name = 'coupon' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
   res.write(fieldversions.join(","));
 
   function pagination() {
-    vuscreen_getMobileData_Pagination(req, function (err, doc) {
+    vuscreen_getCouponData_Pagination(req, function (err, doc) {
       if (doc.data.length > 0) {
         req.query.start = parseInt(req.query.start) + parseInt(req.query.length);
         var row = '';
@@ -2457,9 +2830,9 @@ exports.vuscreen_CabinCrew_export_csv = function (req, res) {
   // var fieldversions = ["reg_id", "mac", "vehicle_no", "session_id", "title", "genre", "view_duration", "model", "view_date", "view_time", "sync_date", "sync_time", "user_agent","play_duration","sync_type","platform_duration"];
 
 
-  var fields = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "play_duration", "platform_duration", "sync_type", "genre", "model", "user_agent", "session_id", "reg_id"];
-  var fieldversions = ["vehicle_no", "source", "destination", "title", "mac", "sync_date", "sync_time", "view_date", "view_time", "view_datetime", "view_duration", "play_duration", "platform_duration", "sync_type", "genre", "model", "user_agent", "session_id", "reg_id"];
-  var name = 'tracker' + (moment(new Date()).format('YYYY-MM-DD')).toString()
+  var fields = ["vehicle_no", "source", "destination", "type", "view_datetime", "sync_date", "sync_time", "mac", "journey_id", "model", "user_agent", "device_id", "sync_type", "interface", "version", "session_id", "reg_id"];
+  var fieldversions = ["vehicle_no", "source", "destination", "type", "view_datetime", "sync_date", "sync_time", "mac", "journey_id", "model", "user_agent", "device_id", "sync_type", "interface", "version", "session_id", "reg_id"];
+  var name = 'cabincrew' + (moment(new Date()).format('YYYY-MM-DD')).toString()
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-disposition', 'attachment;filename=' + name + '.csv');
   res.write(fieldversions.join(","));
@@ -2586,7 +2959,7 @@ var vuscreen_getFnBIemData_Pagination = function (req, cb) {
   console.log(req.query);
   if (req.query.startDate) { var startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { var endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
-  var query = "SELECT device_id,sync_date, menu, trackingDetails, COUNT(1) as totalRecords, b.title FROM pre-prodspicescreenvuscreen_tracker a JOIN vuscreen_fnb_content b ON a.view_id = b.content_id WHERE trackingDetails LIKE '%f&b%' AND a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' GROUP BY sync_date ,menu , b.title,device_id ORDER BY id DESC";
+  var query = "SELECT device_id,sync_date, menu, trackingDetails, COUNT(1) as totalRecords, b.title FROM  vuscreen_tracker a JOIN vuscreen_fnb_content b ON a.view_id = b.content_id WHERE trackingDetails LIKE '%f&b%' AND a.sync_date>='" + startDate + "' AND a.sync_date<='" + endDate + "' GROUP BY sync_date ,menu , b.title,device_id ORDER BY id DESC";
   var option = { draw: req.query.draw, start: req.query.start, length: req.query.length };
   db.pagination(query, option, function (err, doc) {
     console.log(doc);
@@ -3155,7 +3528,7 @@ var wifi_login_sync = function (req, res) {
 
   d.setDate(d.getDate() - 1);
   var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date= '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date= '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
 
 
   db.get().query(query, function (err, doc) {
@@ -3243,13 +3616,13 @@ var wifi_login_count = function (req, res) {
   // var Yesterday = moment(d).format('YYYY-MM-DD').toString();
   var Yesterday = "2021-01-24"
 
-  var query1 = "SELECT distinct b.vehicle_no FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query1 = "SELECT distinct b.vehicle_no FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
   db.get().query(query1, function (err, doc1) {
     // console.log(err);
     if (err) { return handleError(res, err); }
     else {
 
-      var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+      var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
       db.get().query(query, function (err, doc) {
         if (err) { return handleError(res, err); }
         else {
@@ -3309,7 +3682,7 @@ var wifi_login_count = function (req, res) {
           var html = "Total WiFi Login:" + count;
           html += " According To Sync Date"
           let subject = "WiFI Login Report (Sync Date)"
-          // var email = 'manoj.gupta@mobisign.co.in,deepak.kumar@mobisign.co.in,vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in,ataul.khan001@gmail.com'
+          // var email = 'manoj.gupta@mobisign.co.in,deepak.kumar@mobisign.co.in,vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
           //var email = 'anurag.kumar@spicejet.com,puneet.angrish@spicejet.com,sapna.kumar@spicejet.com,jitendra.gautam@spicejet.com,prashant.mishra4@spicejet.com,sushant.madhab@spicejet.com,manoj.gupta@mobisign.co.in,deepak.kumar@mobisign.co.in,monali.monalisa@mobisign.co.in,product@mobisign.co.in,ashyin.thakral@mobisign.co.in,kedargdr@gmail.com,amajit.das@spicejet.com,nidhi.sinha@spicejet.com,vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
           var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
           EM.dispatchEmail(email, subject, html, "wifisync", function (e) {
@@ -3342,7 +3715,7 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
 
   async.parallel([
     function (callback) {
-      var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query, function (err, Watch) {
         if (err) {
           callback(err, null);
@@ -3353,37 +3726,37 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
       })
     },
     function (callback) {
-      var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  db.get().query(query1, function (err, pdf) {
-         if (err) {
+      var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+      db.get().query(query1, function (err, pdf) {
+        if (err) {
           callback(err, null);
         }
         else {
           callback(null, pdf);
         }
       })
-    },function (callback) {
-      var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+    }, function (callback) {
+      var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query2, function (err, audio) {
-             if (err) {
+        if (err) {
           callback(err, null);
         }
         else {
           callback(null, audio);
         }
       })
-    },function (callback) {
-      var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title"
+    }, function (callback) {
+      var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title"
       db.get().query(query3, function (err, travel) {
-                if (err) {
+        if (err) {
           callback(err, null);
         }
         else {
           callback(null, travel);
         }
       })
-    },function (callback) {
-      var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+    }, function (callback) {
+      var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query4, function (err, store) {
         if (err) {
           callback(err, null);
@@ -3392,30 +3765,30 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
           callback(null, store);
         }
       })
-    },function (callback) {
-      var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+    }, function (callback) {
+      var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
       db.get().query(query5, function (err, fnb) {
-                         if (err) {
+        if (err) {
           callback(err, null);
         }
         else {
           callback(null, fnb);
         }
       })
-    },function (callback) {
-      var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
+    }, function (callback) {
+      var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
       db.get().query(query6, function (err, ad) {
-                                              if (err) {
+        if (err) {
           callback(err, null);
         }
         else {
           callback(null, ad);
         }
       })
-    },function (callback) {
-      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu,type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
-     db.get().query(query7, function (err, menu) {
-                       if (err) {
+    }, function (callback) {
+      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu,type FROM  vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
+      db.get().query(query7, function (err, menu) {
+        if (err) {
           callback(err, null);
         }
         else {
@@ -3424,9 +3797,9 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
       })
     },
     function (callback) {
-      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
-     db.get().query(query7, function (err, menu) {
-                       if (err) {
+      var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, type FROM  vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
+      db.get().query(query7, function (err, menu) {
+        if (err) {
           callback(err, null);
         }
         else {
@@ -3439,31 +3812,31 @@ exports.vuscreen_analyticsvu_panl = function (req, res) {
 
       console.log(results.length);
       var finalData = {
-                                          WATCH: results[0],
-                                          PDF: results[1],
-                                          AUDIO: results[2],
-                                          TRAVEL: results[3],
-                                          STORE: results[4],
-                                          FNB: results[5],
-                                          AD: results[6],
-                                          MENU: results[7],
-                                          TYPE:results[8]
-                                        }
+        WATCH: results[0],
+        PDF: results[1],
+        AUDIO: results[2],
+        TRAVEL: results[3],
+        STORE: results[4],
+        FNB: results[5],
+        AD: results[6],
+        MENU: results[7],
+        TYPE: results[8]
+      }
 
       return res.status(200).json(finalData);
-     
+
     });
 
 
 
-  // var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
-  // var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
-  // var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
+  // var query = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1)as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query1 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query2 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query3 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id where a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query4 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query5 = "SELECT b.content_id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title"
+  // var query6 = "SELECT b.id, b.title, count(distinct mac) as users, count(1) as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title"
+  // var query7 = "SELECT count(1) as clicks, count(distinct mac) as users, menu FROM  vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu"
   // db.get().query(query, function (err, Watch) {
   //   if (err) {
   //     return handleError(res, err);
@@ -3527,7 +3900,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
   // var hostss = " ('1', '2', '3', '4', '5', '6', '8', '10', '11', '13', '14', '15', '17', '18', '20', '22', '23', '26', '29', '32', '33', '35', '36', '37', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '78', '79', '81', '82', '83', '84', '85', '86', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '106', '107', '108', '110', '111', '112', '113', '114', '115', '116', '117', '118', '123', '124', '125', '127', '128', '130', '132', '134', '142', '146', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '163', '164', '169', '171', '172', '173', '174', '175', '177', '180', '181', '184', '185', '186', '188', '190', '191', '192', '193', '194', '195', '196', '197', '198', '199', '200', '201', '203', '205', '206', '207', '208', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '301', '302', '303', '304', '305', '306')"
 
-  var querys = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+  var querys = "SELECT count(distinct device_id) as device,sync_date FROM  vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
   db.get().query(querys, function (err, device) {
     // console.log(err);
     if (err) {
@@ -3546,7 +3919,7 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
 
       async.parallel([
         function (callback) {
-          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_content_package AS b ON a.view_id = b.content_id where a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query, function (err, Watch) {
             if (err) {
               callback(err, null);
@@ -3557,37 +3930,37 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
           })
         },
         function (callback) {
-          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query1, function (err, pdf) {
-             if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, pdf);
             }
           })
-        },function (callback) {
-          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-              db.get().query(query2, function (err, audio) {
-                 if (err) {
+        }, function (callback) {
+          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          db.get().query(query2, function (err, audio) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, audio);
             }
           })
-        },function (callback) {
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
-                  db.get().query(query3, function (err, travel) {
-                    if (err) {
+        }, function (callback) {
+          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id where  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
+          db.get().query(query3, function (err, travel) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, travel);
             }
           })
-        },function (callback) {
-          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+        }, function (callback) {
+          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_store_content AS b ON a.view_id = b.content_id where a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query4, function (err, store) {
             if (err) {
               callback(err, null);
@@ -3596,40 +3969,40 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
               callback(null, store);
             }
           })
-        },function (callback) {
-          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-                          db.get().query(query5, function (err, fnb) {
-                             if (err) {
+        }, function (callback) {
+          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          db.get().query(query5, function (err, fnb) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, fnb);
             }
           })
-        },function (callback) {
-          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
-                              db.get().query(query6, function (err, ad) {
-                                                  if (err) {
+        }, function (callback) {
+          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_advertise_content AS b ON a.view_id = b.id where a.type  like '%ad%'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+          db.get().query(query6, function (err, ad) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, ad);
             }
           })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, menu,type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
+        }, function (callback) {
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, menu,type FROM  vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type"
           db.get().query(query7, function (err, menu) {
-                           if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, menu);
             }
           })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, type FROM pre-prodspicescreenvuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
+        }, function (callback) {
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks, type FROM  vuscreen_tracker where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type"
           db.get().query(query7, function (err, menu) {
-                           if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
@@ -3642,22 +4015,22 @@ exports.vuscreen_analyticsvu_panlpro = function (req, res) {
 
           console.log(results.length);
           var finalData = {
-                                              WATCH: results[0],
-                                              PDF: results[1],
-                                              AUDIO: results[2],
-                                              TRAVEL: results[3],
-                                              STORE: results[4],
-                                              FNB: results[5],
-                                              AD: results[6],
-                                              MENU: results[7],
-                                              TYPE:results[8]
-                                            }
+            WATCH: results[0],
+            PDF: results[1],
+            AUDIO: results[2],
+            TRAVEL: results[3],
+            STORE: results[4],
+            FNB: results[5],
+            AD: results[6],
+            MENU: results[7],
+            TYPE: results[8]
+          }
 
           return res.status(200).json(finalData);
-         
+
         });
 
-    
+
     }
   })
 }
@@ -3668,7 +4041,7 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
   //var hostss = " ('1', '2', '3', '4', '5', '6', '8', '10', '11', '13', '14', '15', '17', '18', '20', '22', '23', '26', '29', '32', '33', '35', '36', '37', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '78', '79', '81', '82', '83', '84', '85', '86', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '100', '101', '102', '103', '106', '107', '108', '110', '111', '112', '113', '114', '115', '116', '117', '118', '123', '124', '125', '127', '128', '130', '132', '134', '142', '146', '148', '149', '150', '151', '152', '153', '154', '155', '156', '157', '158', '159', '160', '161', '163', '164', '169', '171', '172', '173', '174', '175', '177', '180', '181', '184', '185', '186', '188', '190', '191', '192', '193', '194', '195', '196', '197', '198', '199', '200', '201', '203', '205', '206', '207', '208', '211', '212', '213', '214', '215', '216', '217', '218', '219', '220', '221', '301', '302', '303', '304', '305', '306')"
-  var querys = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+  var querys = "SELECT count(distinct device_id) as device,sync_date FROM  vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
   db.get().query(querys, function (err, device) {
     console.log(querys);
     if (err) {
@@ -3685,8 +4058,8 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
 
       async.parallel([
         function (callback) {
-          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-       db.get().query(query, function (err, Watch) {
+          var query = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          db.get().query(query, function (err, Watch) {
             if (err) {
               callback(err, null);
             }
@@ -3696,37 +4069,37 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
           })
         },
         function (callback) {
-          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query1, function (err, pdf) {
-             if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, pdf);
             }
           })
-        },function (callback) {
-          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-    db.get().query(query2, function (err, audio) {
-                 if (err) {
+        }, function (callback) {
+          var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          db.get().query(query2, function (err, audio) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, audio);
             }
           })
-        },function (callback) {
-          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
+        }, function (callback) {
+          var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "'  and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' and  a.menu ='TRAVEL'  or a.type='Travel' group by b.content_id, b.title";
           db.get().query(query3, function (err, travel) {
-                    if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, travel);
             }
           })
-        },function (callback) {
-          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+        }, function (callback) {
+          var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
           db.get().query(query4, function (err, store) {
             if (err) {
               callback(err, null);
@@ -3735,40 +4108,40 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
               callback(null, store);
             }
           })
-        },function (callback) {
-          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
-                db.get().query(query5, function (err, fnb) {
-                             if (err) {
+        }, function (callback) {
+          var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+          db.get().query(query5, function (err, fnb) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, fnb);
             }
           })
-        },function (callback) {
-          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
-                     db.get().query(query6, function (err, ad) {
-                                                  if (err) {
+        }, function (callback) {
+          var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+          db.get().query(query6, function (err, ad) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, ad);
             }
           })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu,type FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type";
+        }, function (callback) {
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu,type FROM  vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu,type";
           db.get().query(query7, function (err, menu) {
-                           if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
               callback(null, menu);
             }
           })
-        },function (callback) {
-          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,type FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type";
+        }, function (callback) {
+          var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,type FROM  vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by type";
           db.get().query(query7, function (err, menu) {
-                           if (err) {
+            if (err) {
               callback(err, null);
             }
             else {
@@ -3781,60 +4154,60 @@ exports.vuscreen_analyticsvu_des = function (req, res) {
 
           console.log(results.length);
           var finalData = {
-                                              WATCH: results[0],
-                                              PDF: results[1],
-                                              AUDIO: results[2],
-                                              TRAVEL: results[3],
-                                              STORE: results[4],
-                                              FNB: results[5],
-                                              AD: results[6],
-                                              MENU: results[7],
-                                              TYPE:results[8]
-                                            }
+            WATCH: results[0],
+            PDF: results[1],
+            AUDIO: results[2],
+            TRAVEL: results[3],
+            STORE: results[4],
+            FNB: results[5],
+            AD: results[6],
+            MENU: results[7],
+            TYPE: results[8]
+          }
 
           return res.status(200).json(finalData);
-         
+
         });
 
 
 
 
-      // var query8 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      // var query8 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_content_package AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and  a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
       // db.get().query(query8, function (err, Watch) {
       //   if (err) {
       //     return handleError(res, err);
       //   }
       //   else {
-      //     var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //     var query1 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='pdf' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
       //     db.get().query(query1, function (err, pdf) {
       //       if (err) { return handleError(res, err); }
       //       else {
-      //         var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //         var query2 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_read_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='audio' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //         db.get().query(query2, function (err, audio) {
       //           if (err) { return handleError(res, err); }
       //           else {
-      //             var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //             var query3 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.type='TRAVEL' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //             db.get().query(query3, function (err, travel) {
       //               if (err) { return handleError(res, err); }
       //               else {
-      //                 var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //                 var query4 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_store_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='STORE' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //                 db.get().query(query4, function (err, store) {
       //                   if (err) { return handleError(res, err); }
       //                   else {
-      //                     var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
+      //                     var query5 = "SELECT b.content_id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_fnb_content AS b ON a.view_id = b.content_id where a.destination='" + req.query.destination + "' and a.menu='f&b' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' group by b.content_id, b.title";
 
       //                     db.get().query(query5, function (err, fnb) {
       //                       if (err) { return handleError(res, err); }
       //                       else {
-      //                         var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
+      //                         var query6 = "SELECT b.id, b.title, Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks FROM  vuscreen_tracker AS a JOIN  vuscreen_advertise_content AS b ON a.view_id = b.id where a.destination='" + req.query.destination + "' and a.type like '%ad%' and a.sync_date>='" + startDate + "' and a.sync_date<='" + endDate + "' or a.menu like '%ad%' group by b.id, b.title";
 
       //                         db.get().query(query6, function (err, ad) {
       //                           if (err) { return handleError(res, err); }
       //                           else {
-      //                             var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu FROM pre-prodspicescreenvuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu";
+      //                             var query7 = "SELECT Round((count(distinct mac)/" + div + ")*" + mul + ") as users, Round((count(1)/" + div + ")*" + mul + ") as clicks,menu FROM  vuscreen_tracker where destination='" + req.query.destination + "' and sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by menu";
       //                             db.get().query(query7, function (err, menu) {
       //                               if (err) { return handleError(res, err); }
       //                               else {
@@ -3884,7 +4257,7 @@ exports.wifi_login = function (req, res) {
 
   //   d.setDate(d.getDate() - 1);
   //   var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+  var query = " SELECT count(distinct mac) as count FROM vuscreen_wifilogin where  sync_date>='" + startDate + "' AND sync_date<='" + endDate + "' "  ;
 
   db.get().query(query, function (err, doc) {
     if (err) {
@@ -3893,52 +4266,80 @@ exports.wifi_login = function (req, res) {
     }
     else {
 
-
-      var data = ""
-      let wifiMap = new Map();
-      let a = []
-      var count = 0;
-      //  console.log(doc.length);
-      for (let i = 0; i < doc.length; i++) {
-        data += doc[i].unique_mac_address + ",";
-        //  console.log(doc[i].unique_mac_address)
-
-        if (doc.length == i + 1) {
-
-
-          var data1 = data.split(',');
-          // console.log(data1.length);
-
-          for (let j = 0; j < data1.length; j++) {
-            const element = data1[j];
-
-            wifiMap.set(element, element)
-
-            if (data1.length == j + 1) {
-              // console.log(j);
-              // console.log(wifiMap.size)
-              // console.log( wifiMap);
-              count = wifiMap.size
-              function logMapElements(value, key, map) {
-
-                a.push({ "macaddress": value })
-                // console.log(`m[${key}] = ${value}`);
-              }
-              wifiMap.forEach(logMapElements);
-            }
-
-          }
-          // console.log(wifiMap);
-          // console.log(wifiMap.size)
-          count = wifiMap.size;
-        }
-      }
-
-
-      return res.status(200).json(count);
+      return res.status(200).json(doc.count);
     }
   })
 };
+
+
+
+// exports.wifi_login = function (req, res) {
+//   // var wifi_login_sync = function (req, res) {
+//   var startDate = 'null', endDate = 'null';
+//   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+//   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+//   //   var currentDate = moment(new Date()).format('YYYY-MM-DD');
+//   //   var d = new Date();
+//   // // var Yesterday='2020-10-30';
+//   // // var Yesterdays='2020-10-01';
+
+//   //   d.setDate(d.getDate() - 1);
+//   //   var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+//   var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+
+//   db.get().query(query, function (err, doc) {
+//     if (err) {
+//       console.log(err);
+//       return handleError(res, err);
+//     }
+//     else {
+
+
+//       var data = ""
+//       let wifiMap = new Map();
+//       let a = []
+//       var count = 0;
+//       //  console.log(doc.length);
+//       for (let i = 0; i < doc.length; i++) {
+//         data += doc[i].unique_mac_address + ",";
+//         //  console.log(doc[i].unique_mac_address)
+
+//         if (doc.length == i + 1) {
+
+
+//           var data1 = data.split(',');
+//           // console.log(data1.length);
+
+//           for (let j = 0; j < data1.length; j++) {
+//             const element = data1[j];
+
+//             wifiMap.set(element, element)
+
+//             if (data1.length == j + 1) {
+//               // console.log(j);
+//               // console.log(wifiMap.size)
+//               // console.log( wifiMap);
+//               count = wifiMap.size
+//               function logMapElements(value, key, map) {
+
+//                 a.push({ "macaddress": value })
+//                 // console.log(`m[${key}] = ${value}`);
+//               }
+//               wifiMap.forEach(logMapElements);
+//             }
+
+//           }
+//           // console.log(wifiMap);
+//           // console.log(wifiMap.size)
+//           count = wifiMap.size;
+//         }
+//       }
+
+
+//       return res.status(200).json(count);
+//     }
+//   })
+// };
 // vuscreen_analyticsvu_des()
 
 exports.wifi_login_pro = function (req, res, next) {
@@ -3995,7 +4396,7 @@ exports.wifi_login_act = function (req, res, next) {
 //  vuscreen_basestation()
 function get_host(startDate, endDate) {
   return new Promise(function (myResolve, myReject) {
-    let query = "SELECT count(distinct device_id) as device,sync_date FROM pre-prodspicescreenvuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
+    let query = "SELECT count(distinct device_id) as device,sync_date FROM  vuscreen_tracker  where sync_date>='" + startDate + "' and sync_date<='" + endDate + "' group by sync_date";
     db.get().query(query, function (err, device) {
       if (err) { myResolve(err) }
       else {
@@ -4014,7 +4415,7 @@ function get_host(startDate, endDate) {
 //  vuscreen_basestation()
 function get_login(startDate, endDate) {
   return new Promise(function (myResolve, myReject) {
-    let query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+    let query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.sync_date >= '" + startDate + "' and a.sync_date <= '" + endDate + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
     db.get().query(query, function (err, device) {
       if (err) { myResolve(err) }
       else {
@@ -4101,1040 +4502,1040 @@ exports.get_ss = function (req, res) {
 ///////////////////////////New analytics SMS Api's////////////////////////
 exports.vuscreen_SmsSummary = function (req, res) {
   // var vuscreen_SmsSummary = function (req, res) {
-  
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick"
-  
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      } else {
-        // console.log(doc)
-        var y = new Date();
-        y.setDate(y.getDate() - 2);
-        var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
-        var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalclicks,"
-          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterdays + "') TotalAdclick"
-  
-  
-        //var option = { draw: req.query.draw, start: 0, length: 500 };
-        db.get().query(query1, function (error, doc1) {
-          if (error) {
-            console.log(error)
-  
-          }
-          else {
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docs) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docs.length; i++) {
-                  data += docs[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docs.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
+
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
+
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+
+  var query = "select"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick"
+
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      // console.log(doc)
+      var y = new Date();
+      y.setDate(y.getDate() - 2);
+      var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
+      var query1 = "select"
+        + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+        + "(SELECT count(1) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalclicks,"
+        + "(SELECT count(1) FROM  vuscreen_tracker where menu='AD' and sync_date='" + Yesterdays + "') TotalAdclick"
+
+
+      //var option = { draw: req.query.draw, start: 0, length: 500 };
+      db.get().query(query1, function (error, doc1) {
+        if (error) {
+          console.log(error)
+
+        }
+        else {
+          var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+          db.get().query(query, function (err, docs) {
+            console.log(err);
+            if (err) { return handleError(res, err); }
+            else {
+
+              var wifi = 0;
+              var data = ""
+              let wifiMap = new Map();
+              let a = []
+              var count = 0;
+              for (let i = 0; i < docs.length; i++) {
+                data += docs[i].unique_mac_address + ",";
+                // console.log(doc[i].unique_mac_address)
+
+                if (docs.length == i + 1) {
+                  var data1 = data.split(',');
+                  console.log(data1.length);
+
+                  for (let j = 0; j < data1.length; j++) {
+                    const element = data1[j];
+
+                    wifiMap.set(element, element)
+
+                    if (data1.length == j + 1) {
+                      console.log(wifiMap.size)
+                      count = wifiMap.size
+                      function logMapElements(value, key, map) {
+
+                        a.push({ "macaddress": value })
+                        // console.log(`m[${key}] = ${value}`);
                       }
-          
+                      wifiMap.forEach(logMapElements);
                     }
-                    // console.log(wifiMap);
-                    wifi=wifiMap.size;
-                    // console.log(wifiMap.size)
+
                   }
+                  // console.log(wifiMap);
+                  wifi = wifiMap.size;
+                  // console.log(wifiMap.size)
                 }
-          
-                
-  
-            // console.log(doc1);
-      
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docsy) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi1=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docsy.length; i++) {
-                  data += docsy[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docsy.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
-                      }
-          
-                    }
-                    // console.log(wifiMap);
-                    wifi1=wifiMap.size;
-                    // console.log(wifiMap.size)
-                  }
-                }
-          
-                
-  
-            // console.log(doc1);
-      
-            var html = "<html><head>"
-            html += "<style>"
-            html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-            html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-            html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-            html += "<h4>Dear Recipients,</h4>"
-            html += "<h4>Please find below reports.</h4>"
-            html += "<h4><b> Actual Summary report </b></h4>"
-            var sms="Actual%20Summery%20Report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F"+ doc1[0].Totalhostsync +"%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F"+wifi1+"%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0ATotal%20clicks%28T%2FY%29%3A" + doc[0].Totalclicks + "%2F" + doc1[0].Totalclicks + "%0ATotal%20Ad%20click%28T%2FY%29%3A" + doc[0].TotalAdclick + "%2F" + doc1[0].TotalAdclick +""
-            // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-            let reso={data:sms};
-            // console.log(reso);
-            return res.status(200).json(reso); 
-            var today = moment(Yesterday).format("Do MMM");
-            var yday = moment(Yesterdays).format("Do MMM");
-            html += "<h4><b>" + today + " / " + yday + "</b></h4>"
-            html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
-            html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Totalclicks/TotalAdclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Totalclicks + "/" + doc[0].TotalAdclick + "</b></h4>"
-            html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Totalclicks/TotalAdclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Totalclicks + "/" + doc1[0].TotalAdclick + "</b></h4>"
-  
-            html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-            let subject = "Spicescreen SmsSummary"
-            //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-            // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-            var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-            EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-              console.log(e)
-            })
-  
-          }
-  
-        })
-      }
-    })
-      }
-    })
-  }
-    })
-  }
-  // vuscreen_SmsSummary();
-  
-  exports.vuscreen_WatchAnalytics = function (req, res) {
-  // var vuscreen_WatchAnalytics = function (req, cb) {
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick"
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      } else {
-        // console.log(doc)
-        var y = new Date();
-        y.setDate(y.getDate() - 2);
-        var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
-        var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchuser,"
-          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchclick"
-  
-  
-        //var option = { draw: req.query.draw, start: 0, length: 500 };
-        db.get().query(query1, function (error, doc1) {
-          if (error) {
-            console.log(error)
-  
-          }
-          else {
-  
-  
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docs) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docs.length; i++) {
-                  data += docs[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docs.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
-                      }
-          
-                    }
-                    // console.log(wifiMap);
-                    wifi=wifiMap.size;
-                    // console.log(wifiMap.size)
-                  }
-                }
-  
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-                db.get().query(query, function (err, docsy) {
-                  console.log(err);
-                  if (err) { return handleError(res, err); }
-                  else {
-              
-              var wifi1=0;
-                    var data = ""
-                    let wifiMap = new Map();
-                    let a = []
-                    var count = 0;
-                    for (let i = 0; i < docsy.length; i++) {
-                      data += docsy[i].unique_mac_address + ",";
-                      // console.log(doc[i].unique_mac_address)
-              
-                      if (docsy.length == i + 1) {
-                        var data1 = data.split(',');
-                        console.log(data1.length);
-              
-                        for (let j = 0; j < data1.length; j++) {
-                          const element = data1[j];
-              
-                          wifiMap.set(element, element)
-              
-                          if (data1.length == j + 1) {
-                            console.log(wifiMap.size)
-                            count = wifiMap.size
-                            function logMapElements(value, key, map) {
-              
-                              a.push({ "macaddress": value })
-                              // console.log(`m[${key}] = ${value}`);
-                            }
-                            wifiMap.forEach(logMapElements);
+              }
+
+
+
+              // console.log(doc1);
+
+              var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+              db.get().query(query, function (err, docsy) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                  var wifi1 = 0;
+                  var data = ""
+                  let wifiMap = new Map();
+                  let a = []
+                  var count = 0;
+                  for (let i = 0; i < docsy.length; i++) {
+                    data += docsy[i].unique_mac_address + ",";
+                    // console.log(doc[i].unique_mac_address)
+
+                    if (docsy.length == i + 1) {
+                      var data1 = data.split(',');
+                      console.log(data1.length);
+
+                      for (let j = 0; j < data1.length; j++) {
+                        const element = data1[j];
+
+                        wifiMap.set(element, element)
+
+                        if (data1.length == j + 1) {
+                          console.log(wifiMap.size)
+                          count = wifiMap.size
+                          function logMapElements(value, key, map) {
+
+                            a.push({ "macaddress": value })
+                            // console.log(`m[${key}] = ${value}`);
                           }
-              
+                          wifiMap.forEach(logMapElements);
                         }
-                        // console.log(wifiMap);
-                        wifi1=wifiMap.size;
-                        // console.log(wifiMap.size)
+
                       }
+                      // console.log(wifiMap);
+                      wifi1 = wifiMap.size;
+                      // console.log(wifiMap.size)
                     }
-              
-                    
-      
-  
-            // console.log(doc1);
-            var total_device = 152;
-            var days = 31;
-            var html = "<html><head>"
-            html += "<style>"
-            html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-            html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-            html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-            html += "<h4>Dear Recipients,</h4>"
-            html += "<h4>Please find below reports.</h4>"
-            html += "<h4><b> Actual Watch analytics report </b></h4>"
-            // var today = moment(Yesterday).format("Do MMM");
-            // var yday = moment(Yesterdays).format("Do MMM");
+                  }
 
-            var sms="Actual%20Watch%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F"+ doc1[0].Totalhostsync +"%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F"+wifi1+"%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AWatchuser%28T%2FY%29%3A" + doc[0].Watchuser + "%2F" + doc1[0].Watchuser + "%0AWatchclick%28T%2FY%29%3A" + doc[0].Watchclick + "%2F" + doc1[0].Watchclick +""
-            // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-            let reso={data:sms};
-            // console.log(reso);
-            return res.status(200).json(reso); 
 
-            html += "<h4><b>" + today + " / " + yday + "</b></h4>"
-            html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
-            html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Watchuser + "/" + doc[0].Watchclick + "</b></h4>"
-            html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Watchuser + "/" + doc1[0].Watchclick + "</b></h4>"
-  
-            html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-            let subject = "Spicescreen Watch Analytics"
-            //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-            // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-            var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-            EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-              console.log(e)
-            })
-  
-          }
-  
-        })
-      }
-    })
-      }
-    })
-  }
-  
+
+                  // console.log(doc1);
+
+                  var html = "<html><head>"
+                  html += "<style>"
+                  html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+                  html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+                  html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+                  html += "<h4>Dear Recipients,</h4>"
+                  html += "<h4>Please find below reports.</h4>"
+                  html += "<h4><b> Actual Summary report </b></h4>"
+                  var sms = "Actual%20Summery%20Report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F" + doc1[0].Totalhostsync + "%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F" + wifi1 + "%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0ATotal%20clicks%28T%2FY%29%3A" + doc[0].Totalclicks + "%2F" + doc1[0].Totalclicks + "%0ATotal%20Ad%20click%28T%2FY%29%3A" + doc[0].TotalAdclick + "%2F" + doc1[0].TotalAdclick + ""
+                  // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+                  let reso = { data: sms };
+                  // console.log(reso);
+                  return res.status(200).json(reso);
+                  var today = moment(Yesterday).format("Do MMM");
+                  var yday = moment(Yesterdays).format("Do MMM");
+                  html += "<h4><b>" + today + " / " + yday + "</b></h4>"
+                  html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+                  html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Totalclicks/TotalAdclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Totalclicks + "/" + doc[0].TotalAdclick + "</b></h4>"
+                  html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Totalclicks/TotalAdclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Totalclicks + "/" + doc1[0].TotalAdclick + "</b></h4>"
+
+                  html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+                  let subject = "Spicescreen SmsSummary"
+                  //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+                  // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+                  var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+                  EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+                    console.log(e)
+                  })
+
+                }
+
+              })
+            }
+          })
+        }
+      })
+    }
   })
-  }
-  // vuscreen_WatchAnalytics();
-  
-  exports.vuscreen_TravelAnalytics = function (req, res) {
-  // var vuscreen_TravelAnalytics = function (req, cb) {
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Travelclick,"
-      + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Traveluser,"
-      + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfDownload,"
-      + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfUser"
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      } else {
-        // console.log(doc)
-        var y = new Date();
-        y.setDate(y.getDate() - 2);
-        var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
-        var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Travelclick,"
-          + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Traveluser,"
-          + "(SELECT COUNT(1) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfDownload,"
-          + "(SELECT COUNT(distinct mac) FROM pre-prodspicescreenvuscreen_tracker AS a JOIN pre-prodspicescreenvuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfUser"
-  
-  
-  
-  
-  
-        //var option = { draw: req.query.draw, start: 0, length: 500 };
-        db.get().query(query1, function (error, doc1) {
-          if (error) {
-            console.log(error)
-  
-          }
-          else {
-  
-  
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docs) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docs.length; i++) {
-                  data += docs[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docs.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
+}
+// vuscreen_SmsSummary();
+
+exports.vuscreen_WatchAnalytics = function (req, res) {
+  // var vuscreen_WatchAnalytics = function (req, cb) {
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
+
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+
+  var query = "select"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick"
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      // console.log(doc)
+      var y = new Date();
+      y.setDate(y.getDate() - 2);
+      var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
+      var query1 = "select"
+        + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchuser,"
+        + "(SELECT count(1) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterdays + "') Watchclick"
+
+
+      //var option = { draw: req.query.draw, start: 0, length: 500 };
+      db.get().query(query1, function (error, doc1) {
+        if (error) {
+          console.log(error)
+
+        }
+        else {
+
+
+          var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+          db.get().query(query, function (err, docs) {
+            console.log(err);
+            if (err) { return handleError(res, err); }
+            else {
+
+              var wifi = 0;
+              var data = ""
+              let wifiMap = new Map();
+              let a = []
+              var count = 0;
+              for (let i = 0; i < docs.length; i++) {
+                data += docs[i].unique_mac_address + ",";
+                // console.log(doc[i].unique_mac_address)
+
+                if (docs.length == i + 1) {
+                  var data1 = data.split(',');
+                  console.log(data1.length);
+
+                  for (let j = 0; j < data1.length; j++) {
+                    const element = data1[j];
+
+                    wifiMap.set(element, element)
+
+                    if (data1.length == j + 1) {
+                      console.log(wifiMap.size)
+                      count = wifiMap.size
+                      function logMapElements(value, key, map) {
+
+                        a.push({ "macaddress": value })
+                        // console.log(`m[${key}] = ${value}`);
                       }
-          
+                      wifiMap.forEach(logMapElements);
                     }
-                    // console.log(wifiMap);
-                    wifi=wifiMap.size;
-                    // console.log(wifiMap.size)
+
                   }
+                  // console.log(wifiMap);
+                  wifi = wifiMap.size;
+                  // console.log(wifiMap.size)
                 }
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-                db.get().query(query, function (err, docsy) {
-                  console.log(err);
-                  if (err) { return handleError(res, err); }
-                  else {
-              
-              var wifi1=0;
-                    var data = ""
-                    let wifiMap = new Map();
-                    let a = []
-                    var count = 0;
-                    for (let i = 0; i < docsy.length; i++) {
-                      data += docsy[i].unique_mac_address + ",";
-                      // console.log(doc[i].unique_mac_address)
-              
-                      if (docsy.length == i + 1) {
-                        var data1 = data.split(',');
-                        console.log(data1.length);
-              
-                        for (let j = 0; j < data1.length; j++) {
-                          const element = data1[j];
-              
-                          wifiMap.set(element, element)
-              
-                          if (data1.length == j + 1) {
-                            console.log(wifiMap.size)
-                            count = wifiMap.size
-                            function logMapElements(value, key, map) {
-              
-                              a.push({ "macaddress": value })
-                              // console.log(`m[${key}] = ${value}`);
-                            }
-                            wifiMap.forEach(logMapElements);
+              }
+
+              var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+              db.get().query(query, function (err, docsy) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                  var wifi1 = 0;
+                  var data = ""
+                  let wifiMap = new Map();
+                  let a = []
+                  var count = 0;
+                  for (let i = 0; i < docsy.length; i++) {
+                    data += docsy[i].unique_mac_address + ",";
+                    // console.log(doc[i].unique_mac_address)
+
+                    if (docsy.length == i + 1) {
+                      var data1 = data.split(',');
+                      console.log(data1.length);
+
+                      for (let j = 0; j < data1.length; j++) {
+                        const element = data1[j];
+
+                        wifiMap.set(element, element)
+
+                        if (data1.length == j + 1) {
+                          console.log(wifiMap.size)
+                          count = wifiMap.size
+                          function logMapElements(value, key, map) {
+
+                            a.push({ "macaddress": value })
+                            // console.log(`m[${key}] = ${value}`);
                           }
-              
+                          wifiMap.forEach(logMapElements);
                         }
-                        // console.log(wifiMap);
-                        wifi1=wifiMap.size;
-                        // console.log(wifiMap.size)
+
                       }
+                      // console.log(wifiMap);
+                      wifi1 = wifiMap.size;
+                      // console.log(wifiMap.size)
                     }
-              
-                    
-      
-            // console.log(doc1);
-            var html = "<html><head>"
-            html += "<style>"
-            html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-            html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-            html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-            html += "<h4>Dear Recipients,</h4>"
-            html += "<h4>Please find below reports.</h4>"
-            html += "<h4><b> Actual Travel analytics report </b></h4>"
-            var today = moment(Yesterday).format("Do MMM");
-            var yday = moment(Yesterdays).format("Do MMM");
-            html += "<h4><b>" + today + " / " + yday + "</b></h4>"
-            html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
+                  }
 
-            var sms="Actual%20Travel%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F"+ doc1[0].Totalhostsync +"%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F"+wifi1+"%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AWatchuser%28T%2FY%29%3A" + doc[0].Traveluser + "%2F" + doc1[0].Traveluser + "%0AWatchclick%28T%2FY%29%3A" + doc[0].Travelclick + "%2F" + doc1[0].Travelclick +"%0APdfUser%28T%2FY%29%3A" + doc[0].PdfUser + "%2F" + doc1[0].PdfUser + "%0APdfDownload%28T%2FY%29%3A" + doc[0].PdfDownload + "%2F" + doc1[0].PdfDownload +""
-            // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-            let reso={data:sms};
-            // console.log(reso);
-            return res.status(200).json(reso); 
 
-            html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Traveluser/Travelclick/PdfUser/PdfDownload:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Traveluser + "/" + doc[0].Travelclick + "/" + doc[0].PdfUser + "/" + doc[0].PdfDownload + "</b></h4>"
-            html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Traveluser/Travelclick/PdfUser/PdfDownload:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Traveluser + "/" + doc1[0].Travelclick + "/" + doc1[0].PdfUser + "/" + doc1[0].PdfDownload + "</b></h4>"
-  
-            html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-            let subject = "Spicescreen Watch Analytics"
-            //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-            // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-            var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-            EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-              console.log(e)
-            })
-  
+
+
+                  // console.log(doc1);
+                  var total_device = 152;
+                  var days = 31;
+                  var html = "<html><head>"
+                  html += "<style>"
+                  html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+                  html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+                  html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+                  html += "<h4>Dear Recipients,</h4>"
+                  html += "<h4>Please find below reports.</h4>"
+                  html += "<h4><b> Actual Watch analytics report </b></h4>"
+                  // var today = moment(Yesterday).format("Do MMM");
+                  // var yday = moment(Yesterdays).format("Do MMM");
+
+                  var sms = "Actual%20Watch%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F" + doc1[0].Totalhostsync + "%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F" + wifi1 + "%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AWatchuser%28T%2FY%29%3A" + doc[0].Watchuser + "%2F" + doc1[0].Watchuser + "%0AWatchclick%28T%2FY%29%3A" + doc[0].Watchclick + "%2F" + doc1[0].Watchclick + ""
+                  // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+                  let reso = { data: sms };
+                  // console.log(reso);
+                  return res.status(200).json(reso);
+
+                  html += "<h4><b>" + today + " / " + yday + "</b></h4>"
+                  html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+                  html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Watchuser + "/" + doc[0].Watchclick + "</b></h4>"
+                  html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Watchuser + "/" + doc1[0].Watchclick + "</b></h4>"
+
+                  html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+                  let subject = "Spicescreen Watch Analytics"
+                  //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+                  // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+                  var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+                  EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+                    console.log(e)
+                  })
+
+                }
+
+              })
+            }
+          })
+        }
+      })
+    }
+
+  })
+}
+// vuscreen_WatchAnalytics();
+
+exports.vuscreen_TravelAnalytics = function (req, res) {
+  // var vuscreen_TravelAnalytics = function (req, cb) {
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
+
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+
+  var query = "select"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT COUNT(1) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Travelclick,"
+    + "(SELECT COUNT(distinct mac) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterday + "') Traveluser,"
+    + "(SELECT COUNT(1) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfDownload,"
+    + "(SELECT COUNT(distinct mac) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterday + "') PdfUser"
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      // console.log(doc)
+      var y = new Date();
+      y.setDate(y.getDate() - 2);
+      var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
+      var query1 = "select"
+        + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+        + "(SELECT COUNT(1) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Travelclick,"
+        + "(SELECT COUNT(distinct mac) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'TRAVEL' AND a.type = 'NULL' AND a.sync_date='" + Yesterdays + "') Traveluser,"
+        + "(SELECT COUNT(1) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfDownload,"
+        + "(SELECT COUNT(distinct mac) FROM  vuscreen_tracker AS a JOIN  vuscreen_travel_content AS b ON a.view_id = b.content_id WHERE a.menu = 'PDFDOWNLOAD' AND a.type = 'Travel' AND a.sync_date='" + Yesterdays + "') PdfUser"
+
+
+
+
+
+      //var option = { draw: req.query.draw, start: 0, length: 500 };
+      db.get().query(query1, function (error, doc1) {
+        if (error) {
+          console.log(error)
+
+        }
+        else {
+
+
+          var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+          db.get().query(query, function (err, docs) {
+            console.log(err);
+            if (err) { return handleError(res, err); }
+            else {
+
+              var wifi = 0;
+              var data = ""
+              let wifiMap = new Map();
+              let a = []
+              var count = 0;
+              for (let i = 0; i < docs.length; i++) {
+                data += docs[i].unique_mac_address + ",";
+                // console.log(doc[i].unique_mac_address)
+
+                if (docs.length == i + 1) {
+                  var data1 = data.split(',');
+                  console.log(data1.length);
+
+                  for (let j = 0; j < data1.length; j++) {
+                    const element = data1[j];
+
+                    wifiMap.set(element, element)
+
+                    if (data1.length == j + 1) {
+                      console.log(wifiMap.size)
+                      count = wifiMap.size
+                      function logMapElements(value, key, map) {
+
+                        a.push({ "macaddress": value })
+                        // console.log(`m[${key}] = ${value}`);
+                      }
+                      wifiMap.forEach(logMapElements);
+                    }
+
+                  }
+                  // console.log(wifiMap);
+                  wifi = wifiMap.size;
+                  // console.log(wifiMap.size)
+                }
+              }
+              var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+              db.get().query(query, function (err, docsy) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                  var wifi1 = 0;
+                  var data = ""
+                  let wifiMap = new Map();
+                  let a = []
+                  var count = 0;
+                  for (let i = 0; i < docsy.length; i++) {
+                    data += docsy[i].unique_mac_address + ",";
+                    // console.log(doc[i].unique_mac_address)
+
+                    if (docsy.length == i + 1) {
+                      var data1 = data.split(',');
+                      console.log(data1.length);
+
+                      for (let j = 0; j < data1.length; j++) {
+                        const element = data1[j];
+
+                        wifiMap.set(element, element)
+
+                        if (data1.length == j + 1) {
+                          console.log(wifiMap.size)
+                          count = wifiMap.size
+                          function logMapElements(value, key, map) {
+
+                            a.push({ "macaddress": value })
+                            // console.log(`m[${key}] = ${value}`);
+                          }
+                          wifiMap.forEach(logMapElements);
+                        }
+
+                      }
+                      // console.log(wifiMap);
+                      wifi1 = wifiMap.size;
+                      // console.log(wifiMap.size)
+                    }
+                  }
+
+
+
+                  // console.log(doc1);
+                  var html = "<html><head>"
+                  html += "<style>"
+                  html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+                  html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+                  html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+                  html += "<h4>Dear Recipients,</h4>"
+                  html += "<h4>Please find below reports.</h4>"
+                  html += "<h4><b> Actual Travel analytics report </b></h4>"
+                  var today = moment(Yesterday).format("Do MMM");
+                  var yday = moment(Yesterdays).format("Do MMM");
+                  html += "<h4><b>" + today + " / " + yday + "</b></h4>"
+                  html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+
+                  var sms = "Actual%20Travel%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F" + doc1[0].Totalhostsync + "%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F" + wifi1 + "%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AWatchuser%28T%2FY%29%3A" + doc[0].Traveluser + "%2F" + doc1[0].Traveluser + "%0AWatchclick%28T%2FY%29%3A" + doc[0].Travelclick + "%2F" + doc1[0].Travelclick + "%0APdfUser%28T%2FY%29%3A" + doc[0].PdfUser + "%2F" + doc1[0].PdfUser + "%0APdfDownload%28T%2FY%29%3A" + doc[0].PdfDownload + "%2F" + doc1[0].PdfDownload + ""
+                  // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+                  let reso = { data: sms };
+                  // console.log(reso);
+                  return res.status(200).json(reso);
+
+                  html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Traveluser/Travelclick/PdfUser/PdfDownload:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Traveluser + "/" + doc[0].Travelclick + "/" + doc[0].PdfUser + "/" + doc[0].PdfDownload + "</b></h4>"
+                  html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Traveluser/Travelclick/PdfUser/PdfDownload:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Traveluser + "/" + doc1[0].Travelclick + "/" + doc1[0].PdfUser + "/" + doc1[0].PdfDownload + "</b></h4>"
+
+                  html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+                  let subject = "Spicescreen Watch Analytics"
+                  //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+                  // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+                  var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+                  EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+                    console.log(e)
+                  })
+
                 }
               })
             }
-  
-        })
-      }
-    });
-  }
+
+          })
+        }
+      });
+    }
   })
-  }
-  // vuscreen_TravelAnalytics();
-  
-  exports.vuscreen_GameAnalytics = function (req, res) {
+}
+// vuscreen_TravelAnalytics();
+
+exports.vuscreen_GameAnalytics = function (req, res) {
   // var vuscreen_GameAnalytics = function (req, cb) {
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick"
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      } else {
-        // console.log(doc)
-        var y = new Date();
-        y.setDate(y.getDate() - 2);
-        var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
-        var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameuser,"
-          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameclick"
-  
-  
-        //var option = { draw: req.query.draw, start: 0, length: 500 };
-        db.get().query(query1, function (error, doc1) {
-          if (error) {
-            console.log(error)
-  
-          }
-          else {
-  
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docs) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docs.length; i++) {
-                  data += docs[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docs.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
+
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+
+  var query = "select"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick"
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      // console.log(doc)
+      var y = new Date();
+      y.setDate(y.getDate() - 2);
+      var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
+      var query1 = "select"
+        + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameuser,"
+        + "(SELECT count(1) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterdays + "') Gameclick"
+
+
+      //var option = { draw: req.query.draw, start: 0, length: 500 };
+      db.get().query(query1, function (error, doc1) {
+        if (error) {
+          console.log(error)
+
+        }
+        else {
+
+          var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+          db.get().query(query, function (err, docs) {
+            console.log(err);
+            if (err) { return handleError(res, err); }
+            else {
+
+              var wifi = 0;
+              var data = ""
+              let wifiMap = new Map();
+              let a = []
+              var count = 0;
+              for (let i = 0; i < docs.length; i++) {
+                data += docs[i].unique_mac_address + ",";
+                // console.log(doc[i].unique_mac_address)
+
+                if (docs.length == i + 1) {
+                  var data1 = data.split(',');
+                  console.log(data1.length);
+
+                  for (let j = 0; j < data1.length; j++) {
+                    const element = data1[j];
+
+                    wifiMap.set(element, element)
+
+                    if (data1.length == j + 1) {
+                      console.log(wifiMap.size)
+                      count = wifiMap.size
+                      function logMapElements(value, key, map) {
+
+                        a.push({ "macaddress": value })
+                        // console.log(`m[${key}] = ${value}`);
                       }
-          
+                      wifiMap.forEach(logMapElements);
                     }
-                    // console.log(wifiMap);
-                    wifi=wifiMap.size;
-                    // console.log(wifiMap.size)
+
                   }
+                  // console.log(wifiMap);
+                  wifi = wifiMap.size;
+                  // console.log(wifiMap.size)
                 }
-  
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-                db.get().query(query, function (err, docsy) {
-                  console.log(err);
-                  if (err) { return handleError(res, err); }
-                  else {
-              
-              var wifi1=0;
-                    var data = ""
-                    let wifiMap = new Map();
-                    let a = []
-                    var count = 0;
-                    for (let i = 0; i < docsy.length; i++) {
-                      data += docsy[i].unique_mac_address + ",";
-                      // console.log(doc[i].unique_mac_address)
-              
-                      if (docsy.length == i + 1) {
-                        var data1 = data.split(',');
-                        console.log(data1.length);
-              
-                        for (let j = 0; j < data1.length; j++) {
-                          const element = data1[j];
-              
-                          wifiMap.set(element, element)
-              
-                          if (data1.length == j + 1) {
-                            console.log(wifiMap.size)
-                            count = wifiMap.size
-                            function logMapElements(value, key, map) {
-              
-                              a.push({ "macaddress": value })
-                              // console.log(`m[${key}] = ${value}`);
-                            }
-                            wifiMap.forEach(logMapElements);
-                          }
-              
-                        }
-                        // console.log(wifiMap);
-                        wifi1=wifiMap.size;
-                        // console.log(wifiMap.size)
-                      }
-                    }
-              
-                  
-
-            // console.log(doc1);
-            var html = "<html><head>"
-            html += "<style>"
-            html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-            html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-            html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-            html += "<h4>Dear Recipients,</h4>"
-            html += "<h4>Please find below reports.</h4>"
-            html += "<h4><b> Actual Game analytics report </b></h4>"
-            var today = moment(Yesterday).format("Do MMM");
-            var yday = moment(Yesterdays).format("Do MMM");
-
-            var sms="Actual%20Game%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F"+ doc1[0].Totalhostsync +"%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F"+wifi1+"%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AGame%20user%28T%2FY%29%3A" + doc[0].Gameuser + "%2F" + doc1[0].Gameuser + "%0AGame%20click%28T%2FY%29%3A" + doc[0].Gameclick + "%2F" + doc1[0].Gameclick +""
-            // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-            let reso={data:sms};
-            // console.log(reso);
-            return res.status(200).json(reso); 
-            html += "<h4><b>" + today + " / " + yday + "</b></h4>"
-            html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
-            html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Gameuser + "/" + doc[0].Gameclick + "</b></h4>"
-            html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Gameuser + "/" + doc1[0].Gameclick + "</b></h4>"
-  
-            html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-            let subject = "Spicescreen Game Analytics"
-            //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-            // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-            var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-            EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-              console.log(e)
-            })
-          }
-        })
-          }
-  
-        })
-      }
-    });
-  }
-    })
-  }
-  // vuscreen_GameAnalytics();
-  
-  exports.vuscreen_FnbAnalytics = function (req, res) {
-  // var vuscreen_FnbAnalytics = function (req, cb) {
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick"
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      } else {
-        // console.log(doc)
-        var y = new Date();
-        y.setDate(y.getDate() - 2);
-        var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
-        var query1 = "select"
-          + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
-          + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbuser,"
-          + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbclick"
-  
-  
-        //var option = { draw: req.query.draw, start: 0, length: 500 };
-        db.get().query(query1, function (error, doc1) {
-          if (error) {
-            console.log(error)
-  
-          }
-          else {
-  
-            var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-            db.get().query(query, function (err, docs) {
-              console.log(err);
-              if (err) { return handleError(res, err); }
-              else {
-          
-          var wifi=0;
-                var data = ""
-                let wifiMap = new Map();
-                let a = []
-                var count = 0;
-                for (let i = 0; i < docs.length; i++) {
-                  data += docs[i].unique_mac_address + ",";
-                  // console.log(doc[i].unique_mac_address)
-          
-                  if (docs.length == i + 1) {
-                    var data1 = data.split(',');
-                    console.log(data1.length);
-          
-                    for (let j = 0; j < data1.length; j++) {
-                      const element = data1[j];
-          
-                      wifiMap.set(element, element)
-          
-                      if (data1.length == j + 1) {
-                        console.log(wifiMap.size)
-                        count = wifiMap.size
-                        function logMapElements(value, key, map) {
-          
-                          a.push({ "macaddress": value })
-                          // console.log(`m[${key}] = ${value}`);
-                        }
-                        wifiMap.forEach(logMapElements);
-                      }
-          
-                    }
-                    // console.log(wifiMap);
-                    wifi=wifiMap.size;
-                    // console.log(wifiMap.size)
-                  }
-                }
-
-                var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-                db.get().query(query, function (err, docsy) {
-                  console.log(err);
-                  if (err) { return handleError(res, err); }
-                  else {
-              
-              var wifi1=0;
-                    var data = ""
-                    let wifiMap = new Map();
-                    let a = []
-                    var count = 0;
-                    for (let i = 0; i < docsy.length; i++) {
-                      data += docsy[i].unique_mac_address + ",";
-                      // console.log(doc[i].unique_mac_address)
-              
-                      if (docsy.length == i + 1) {
-                        var data1 = data.split(',');
-                        console.log(data1.length);
-              
-                        for (let j = 0; j < data1.length; j++) {
-                          const element = data1[j];
-              
-                          wifiMap.set(element, element)
-              
-                          if (data1.length == j + 1) {
-                            console.log(wifiMap.size)
-                            count = wifiMap.size
-                            function logMapElements(value, key, map) {
-              
-                              a.push({ "macaddress": value })
-                              // console.log(`m[${key}] = ${value}`);
-                            }
-                            wifiMap.forEach(logMapElements);
-                          }
-              
-                        }
-                        // console.log(wifiMap);
-                        wifi1=wifiMap.size;
-                        // console.log(wifiMap.size)
-                      }
-                    }
-              
-                
-            // console.log(doc1);
-            var html = "<html><head>"
-            html += "<style>"
-            html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-            html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-            html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-            html += "<h4>Dear Recipients,</h4>"
-            html += "<h4>Please find below reports.</h4>"
-            html += "<h4><b> Actual Game analytics report </b></h4>"
-            var today = moment(Yesterday).format("Do MMM");
-            var yday = moment(Yesterdays).format("Do MMM");
-
-            var sms="Actual%20FNB%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F"+ doc1[0].Totalhostsync +"%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F"+wifi1+"%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AFNB%20user%28T%2FY%29%3A" + doc[0].Fnbuser + "%2F" + doc1[0].Fnbuser + "%0AFNB%20click%28T%2FY%29%3A" + doc[0].Fnbclick + "%2F" + doc1[0].Fnbclick +""
-            // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-            let reso={data:sms};
-            // console.log(reso);
-            return res.status(200).json(reso); 
-
-            html += "<h4><b>" + today + " / " + yday + "</b></h4>"
-            html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
-            html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Fnbuser + "/" + doc[0].Fnbclick + "</b></h4>"
-            html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Fnbuser + "/" + doc1[0].Fnbclick + "</b></h4>"
-  
-            html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-            let subject = "Spicescreen Fnb Analytics"
-            //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-            // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-            var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-            EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-              console.log(e)
-            })
-  
-          }
-  
-        })
-      }
-    })
-      }
-    });
-  }
-    })
-  }
-  // vuscreen_FnbAnalytics();
-  
-  exports.vuscreen_projectedReport = function (req, res) {
-  // var vuscreen_projectedReport = function (req, cb) {
-    console.log("Tushar");
-    var currentDate = moment(new Date()).format('YYYY-MM-DD');
-    var d = new Date();
-  
-    d.setDate(d.getDate() - 1);
-    var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-  
-    var query = "select"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchdevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbdevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videoclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videouser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videodevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gamedevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineuser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzinedevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audioclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiouser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiodevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifiedclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieduser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieddevice,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialclick,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialuser,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialdevice,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_events where sync_date='" + Yesterday + "') Wifihubstarted,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Wifihubused,"
-      + "(SELECT count(distinct device_id) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
-      + "(SELECT count(1) FROM pre-prodspicescreenvuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
-      + "(SELECT count(distinct mac) FROM pre-prodspicescreenvuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin"
-    //var option = { draw: req.query.draw, start: 0, length: 500 };
-    db.get().query(query, function (error, doc) {
-      if (error) {
-        console.log(error)
-      }         else {
-        var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM pre-prodspicescreenvuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
-        db.get().query(query, function (err, docs) {
-          console.log(err);
-          if (err) { return handleError(res, err); }
-          else {
-      
-      var wifi=0;
-            var data = ""
-            let wifiMap = new Map();
-            let a = []
-            var count = 0;
-            for (let i = 0; i < docs.length; i++) {
-              data += docs[i].unique_mac_address + ",";
-              // console.log(doc[i].unique_mac_address)
-      
-              if (docs.length == i + 1) {
-                var data1 = data.split(',');
-                console.log(data1.length);
-      
-                for (let j = 0; j < data1.length; j++) {
-                  const element = data1[j];
-      
-                  wifiMap.set(element, element)
-      
-                  if (data1.length == j + 1) {
-                    console.log(wifiMap.size)
-                    count = wifiMap.size
-                    function logMapElements(value, key, map) {
-      
-                      a.push({ "macaddress": value })
-                      // console.log(`m[${key}] = ${value}`);
-                    }
-                    wifiMap.forEach(logMapElements);
-                  }
-      
-                }
-                // console.log(wifiMap);
-                wifi=wifiMap.size;
-                // console.log(wifiMap.size)
               }
+
+              var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+              db.get().query(query, function (err, docsy) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                  var wifi1 = 0;
+                  var data = ""
+                  let wifiMap = new Map();
+                  let a = []
+                  var count = 0;
+                  for (let i = 0; i < docsy.length; i++) {
+                    data += docsy[i].unique_mac_address + ",";
+                    // console.log(doc[i].unique_mac_address)
+
+                    if (docsy.length == i + 1) {
+                      var data1 = data.split(',');
+                      console.log(data1.length);
+
+                      for (let j = 0; j < data1.length; j++) {
+                        const element = data1[j];
+
+                        wifiMap.set(element, element)
+
+                        if (data1.length == j + 1) {
+                          console.log(wifiMap.size)
+                          count = wifiMap.size
+                          function logMapElements(value, key, map) {
+
+                            a.push({ "macaddress": value })
+                            // console.log(`m[${key}] = ${value}`);
+                          }
+                          wifiMap.forEach(logMapElements);
+                        }
+
+                      }
+                      // console.log(wifiMap);
+                      wifi1 = wifiMap.size;
+                      // console.log(wifiMap.size)
+                    }
+                  }
+
+
+
+                  // console.log(doc1);
+                  var html = "<html><head>"
+                  html += "<style>"
+                  html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+                  html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+                  html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+                  html += "<h4>Dear Recipients,</h4>"
+                  html += "<h4>Please find below reports.</h4>"
+                  html += "<h4><b> Actual Game analytics report </b></h4>"
+                  var today = moment(Yesterday).format("Do MMM");
+                  var yday = moment(Yesterdays).format("Do MMM");
+
+                  var sms = "Actual%20Game%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F" + doc1[0].Totalhostsync + "%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F" + wifi1 + "%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AGame%20user%28T%2FY%29%3A" + doc[0].Gameuser + "%2F" + doc1[0].Gameuser + "%0AGame%20click%28T%2FY%29%3A" + doc[0].Gameclick + "%2F" + doc1[0].Gameclick + ""
+                  // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+                  let reso = { data: sms };
+                  // console.log(reso);
+                  return res.status(200).json(reso);
+                  html += "<h4><b>" + today + " / " + yday + "</b></h4>"
+                  html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+                  html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Gameuser + "/" + doc[0].Gameclick + "</b></h4>"
+                  html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Gameuser + "/" + doc1[0].Gameclick + "</b></h4>"
+
+                  html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+                  let subject = "Spicescreen Game Analytics"
+                  //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+                  // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+                  var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+                  EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+                    console.log(e)
+                  })
+                }
+              })
             }
 
+          })
+        }
+      });
+    }
+  })
+}
+// vuscreen_GameAnalytics();
 
-           wifi=(wifi/doc[0].Wifihubused)*152*31
-         let  hpl=(doc[0].TotalHomepagelogin/doc[0].Wifihubused)*152*31
+exports.vuscreen_FnbAnalytics = function (req, res) {
+  // var vuscreen_FnbAnalytics = function (req, cb) {
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
 
-        // console.log(doc1);
-        var total_device = 152;
-        var days = 31;
-        var html = "<html><head>"
-        html += "<style>"
-        html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
-        html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
-        html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
-        html += "<h4>Dear Recipients,</h4>"
-        html += "<h4>Please find below reports.</h4>"
-      
-        html += "<br>"
-        html += "<br>"
-        html += "<br>"
-        html += "<br>"
-        html += "<h4><b> Projected Data of Mar month with 152 devices. </b></h4>"
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
 
-        html += "<h4><b> Totalwifilogin:" + wifi+"</b></h4>"
-
-        var wc = ((doc[0].Watchclick / doc[0].Watchdevice) * total_device) * days;
-        var wu = ((doc[0].Watchuser / doc[0].Watchdevice) * total_device) * days;
-
-        html += "<h4> Watchclick:" + Math.round(wc) + "</h4>"
-        html += "<h4> Watchuser:" + Math.round(wu) + "</h4>"
-
-        var fc = ((doc[0].Fnbclick / doc[0].Fnbdevice) * total_device) * days;
-        var fu = ((doc[0].Fnbuser / doc[0].Fnbdevice) * total_device) * days;
-
-        html += "<h4> Fnbclick:" + Math.round(fc) + "</h4>"
-        html += "<h4> Fnbuser:" + Math.round(fu) + "</h4>"
-
-        var vc = ((doc[0].Videoclick / doc[0].Videodevice) * total_device) * days;
-        var vu = ((doc[0].Videouser / doc[0].Videodevice) * total_device) * days;
-
-        html += "<h4> Videoclick:" + Math.round(vc) + "</h4>"
-        html += "<h4> Videouser:" + Math.round(vu) + "</h4>"
-
-        var gc = ((doc[0].Gameclick / doc[0].Gamedevice) * total_device) * days;
-        var gu = ((doc[0].Gameuser / doc[0].Gamedevice) * total_device) * days;
-
-        html += "<h4> Gameclick:" + Math.round(gc) + "</h4>"
-        html += "<h4> Gameuser:" + Math.round(gu) + "</h4>"
-
-        var mc = ((doc[0].Magzineclick / doc[0].Magzinedevice) * total_device) * days;
-        var mu = ((doc[0].Magzineuser / doc[0].Magzinedevice) * total_device) * days;
-
-        html += "<h4> Magzineclick:" + Math.round(mc) + "</h4>"
-        html += "<h4> Magzineuser:" + Math.round(mu) + "</h4>"
-
-        var ac = ((doc[0].Audioclick / doc[0].Audiodevice) * total_device) * days;
-        var au = ((doc[0].Audiouser / doc[0].Audiodevice) * total_device) * days;
-
-        html += "<h4> Audioclick:" + Math.round(ac) + "</h4>"
-        html += "<h4> Audiouser:" + Math.round(au) + "</h4>"
-
-        var cc = ((doc[0].Classifiedclick / doc[0].Classifieddevice) * total_device) * days;
-        var cu = ((doc[0].Classifieduser / doc[0].Classifieddevice) * total_device) * days;
-
-        html += "<h4> Classifiedclick:" + Math.round(cc) + "</h4>"
-        html += "<h4> Classifieduser:" + Math.round(cu) + "</h4>"
-
-        var ic = ((doc[0].Interstitialclick / doc[0].Interstitialdevice) * total_device) * days;
-        var iu = ((doc[0].Interstitialuser / doc[0].Interstitialdevice) * total_device) * days;
+  var query = "select"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick"
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      // console.log(doc)
+      var y = new Date();
+      y.setDate(y.getDate() - 2);
+      var Yesterdays = moment(y).format('YYYY-MM-DD').toString()
+      var query1 = "select"
+        + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterdays + "') Totalhostsync,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterdays + "') TotalHomepagelogin,"
+        + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbuser,"
+        + "(SELECT count(1) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterdays + "') Fnbclick"
 
 
-        html += "<h4> Interstitialclick:" + Math.round(ic) + "</h4>"
-        html += "<h4> Interstitialuser:" + Math.round(iu) + "</h4>"
+      //var option = { draw: req.query.draw, start: 0, length: 500 };
+      db.get().query(query1, function (error, doc1) {
+        if (error) {
+          console.log(error)
+
+        }
+        else {
+
+          var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+          db.get().query(query, function (err, docs) {
+            console.log(err);
+            if (err) { return handleError(res, err); }
+            else {
+
+              var wifi = 0;
+              var data = ""
+              let wifiMap = new Map();
+              let a = []
+              var count = 0;
+              for (let i = 0; i < docs.length; i++) {
+                data += docs[i].unique_mac_address + ",";
+                // console.log(doc[i].unique_mac_address)
+
+                if (docs.length == i + 1) {
+                  var data1 = data.split(',');
+                  console.log(data1.length);
+
+                  for (let j = 0; j < data1.length; j++) {
+                    const element = data1[j];
+
+                    wifiMap.set(element, element)
+
+                    if (data1.length == j + 1) {
+                      console.log(wifiMap.size)
+                      count = wifiMap.size
+                      function logMapElements(value, key, map) {
+
+                        a.push({ "macaddress": value })
+                        // console.log(`m[${key}] = ${value}`);
+                      }
+                      wifiMap.forEach(logMapElements);
+                    }
+
+                  }
+                  // console.log(wifiMap);
+                  wifi = wifiMap.size;
+                  // console.log(wifiMap.size)
+                }
+              }
+
+              var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterdays + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+              db.get().query(query, function (err, docsy) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                  var wifi1 = 0;
+                  var data = ""
+                  let wifiMap = new Map();
+                  let a = []
+                  var count = 0;
+                  for (let i = 0; i < docsy.length; i++) {
+                    data += docsy[i].unique_mac_address + ",";
+                    // console.log(doc[i].unique_mac_address)
+
+                    if (docsy.length == i + 1) {
+                      var data1 = data.split(',');
+                      console.log(data1.length);
+
+                      for (let j = 0; j < data1.length; j++) {
+                        const element = data1[j];
+
+                        wifiMap.set(element, element)
+
+                        if (data1.length == j + 1) {
+                          console.log(wifiMap.size)
+                          count = wifiMap.size
+                          function logMapElements(value, key, map) {
+
+                            a.push({ "macaddress": value })
+                            // console.log(`m[${key}] = ${value}`);
+                          }
+                          wifiMap.forEach(logMapElements);
+                        }
+
+                      }
+                      // console.log(wifiMap);
+                      wifi1 = wifiMap.size;
+                      // console.log(wifiMap.size)
+                    }
+                  }
 
 
-        var sms="Projected%20Data%20Report%20%0Awifi%20Login%3A%20" + Math.round(wifi)+ "%0AHomepage%20Login%3A%20" + Math.round(hpl)+ "%0AWatch%20user%3A%20" + Math.round(wu) +"%0AWatch%20click%3A" + Math.round(wc) +  "%20%0AFnb%20user%3A" + Math.round(fu) + "%0AFnb%20click%3A" + Math.round(fc) + "%0AVideo%20user%3A" + Math.round(vu) +  "%0AVideo%20click%3A" + Math.round(vc) +  "%0AGame%20user%3A" + Math.round(gu) + "%0AGame%20click%3A" + Math.round(gc) +  "%0AMagzine%20user%3A" + Math.round(mu) +"%0AMagzine%20click%3A" + Math.round(mc) +  "%0AAudio%20user%3A" + Math.round(au) + "%0AAudio%20click%3A" + Math.round(ac) +  "%0AAD%20user%3A" + Math.round(cu) + "%0AAD%20click%3A" + Math.round(cc) +  "%0ATravel%20user%3A" + Math.round(iu) + "%0ATravel%20click%3A" + Math.round(ic) + ""
-        // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
-        let reso={data:sms};
-        // console.log(reso);
-        return res.status(200).json(reso); 
+                  // console.log(doc1);
+                  var html = "<html><head>"
+                  html += "<style>"
+                  html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+                  html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+                  html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+                  html += "<h4>Dear Recipients,</h4>"
+                  html += "<h4>Please find below reports.</h4>"
+                  html += "<h4><b> Actual Game analytics report </b></h4>"
+                  var today = moment(Yesterday).format("Do MMM");
+                  var yday = moment(Yesterdays).format("Do MMM");
 
-        html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
-        let subject = "Spicescreen SmsReport"
-        //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
-        // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
-        var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
-        EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
-          console.log(e)
-        })
-   
+                  var sms = "Actual%20FNB%20analytics%20report%20%0ATotal%20host%20sync%28T%2FY%29%3A" + doc[0].Totalhostsync + "%2F" + doc1[0].Totalhostsync + "%0ATotal%20wifi%20Login%28T%2FY%29%3A" + wifi + "%2F" + wifi1 + "%0ATotal%20Homepage%20login%28T%2FY%29%3A%20" + doc[0].TotalHomepagelogin + "%2F" + doc1[0].TotalHomepagelogin + "%0AFNB%20user%28T%2FY%29%3A" + doc[0].Fnbuser + "%2F" + doc1[0].Fnbuser + "%0AFNB%20click%28T%2FY%29%3A" + doc[0].Fnbclick + "%2F" + doc1[0].Fnbclick + ""
+                  // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+                  let reso = { data: sms };
+                  // console.log(reso);
+                  return res.status(200).json(reso);
 
-      }
+                  html += "<h4><b>" + today + " / " + yday + "</b></h4>"
+                  html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+                  html += "<h4><b>T- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc[0].Totalhostsync + "/" + doc[0].TotalHomepagelogin + "/" + doc[0].Fnbuser + "/" + doc[0].Fnbclick + "</b></h4>"
+                  html += "<h4><b>Y- Totalhostsync/TotalHomepagelogin/Watchuser/Watchclick:" + doc1[0].Totalhostsync + "/" + doc1[0].TotalHomepagelogin + "/" + doc1[0].Fnbuser + "/" + doc1[0].Fnbclick + "</b></h4>"
 
-    })
-  }
-    })
-  }
+                  html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+                  let subject = "Spicescreen Fnb Analytics"
+                  //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+                  // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+                  var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+                  EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+                    console.log(e)
+                  })
+
+                }
+
+              })
+            }
+          })
+        }
+      });
+    }
+  })
+}
+// vuscreen_FnbAnalytics();
+
+exports.vuscreen_projectedReport = function (req, res) {
+  // var vuscreen_projectedReport = function (req, cb) {
+  console.log("Tushar");
+  var currentDate = moment(new Date()).format('YYYY-MM-DD');
+  var d = new Date();
+
+  d.setDate(d.getDate() - 1);
+  var Yesterday = moment(d).format('YYYY-MM-DD').toString()
+
+  var query = "select"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='AD' and sync_date='" + Yesterday + "') TotalAdclick,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='WATCH' and sync_date='" + Yesterday + "') Watchdevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='fnb' and sync_date='" + Yesterday + "') Fnbdevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videoclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videouser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='video' and sync_date='" + Yesterday + "') Videodevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gameuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='STORE' and sync_date='" + Yesterday + "') Gamedevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzineuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='pdf' and sync_date='" + Yesterday + "') Magzinedevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audioclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiouser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='audio' and sync_date='" + Yesterday + "') Audiodevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifiedclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieduser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where menu='travel' and sync_date='" + Yesterday + "') Classifieddevice,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialclick,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialuser,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where type='interstitial' and sync_date='" + Yesterday + "') Interstitialdevice,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_events where sync_date='" + Yesterday + "') Wifihubstarted,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Wifihubused,"
+    + "(SELECT count(distinct device_id) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalhostsync,"
+    + "(SELECT count(1) FROM  vuscreen_tracker where sync_date='" + Yesterday + "') Totalclicks,"
+    + "(SELECT count(distinct mac) FROM  vuscreen_tracker where menu='SS' and sync_date='" + Yesterday + "') TotalHomepagelogin"
+  //var option = { draw: req.query.draw, start: 0, length: 500 };
+  db.get().query(query, function (error, doc) {
+    if (error) {
+      console.log(error)
+    } else {
+      var query = "SELECT distinct b.vehicle_no, a.event, a.view_datetime, a.journey_id,unique_mac_address FROM  vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id WHERE a.view_date = '" + Yesterday + "' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC";
+      db.get().query(query, function (err, docs) {
+        console.log(err);
+        if (err) { return handleError(res, err); }
+        else {
+
+          var wifi = 0;
+          var data = ""
+          let wifiMap = new Map();
+          let a = []
+          var count = 0;
+          for (let i = 0; i < docs.length; i++) {
+            data += docs[i].unique_mac_address + ",";
+            // console.log(doc[i].unique_mac_address)
+
+            if (docs.length == i + 1) {
+              var data1 = data.split(',');
+              console.log(data1.length);
+
+              for (let j = 0; j < data1.length; j++) {
+                const element = data1[j];
+
+                wifiMap.set(element, element)
+
+                if (data1.length == j + 1) {
+                  console.log(wifiMap.size)
+                  count = wifiMap.size
+                  function logMapElements(value, key, map) {
+
+                    a.push({ "macaddress": value })
+                    // console.log(`m[${key}] = ${value}`);
+                  }
+                  wifiMap.forEach(logMapElements);
+                }
+
+              }
+              // console.log(wifiMap);
+              wifi = wifiMap.size;
+              // console.log(wifiMap.size)
+            }
+          }
+
+
+          wifi = (wifi / doc[0].Wifihubused) * 152 * 31
+          let hpl = (doc[0].TotalHomepagelogin / doc[0].Wifihubused) * 152 * 31
+
+          // console.log(doc1);
+          var total_device = 152;
+          var days = 31;
+          var html = "<html><head>"
+          html += "<style>"
+          html += "table {font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}"
+          html += "td, th {border: 2px solid black;text-align: center;padding: 8px;}"
+          html += "tr:nth-child(even) {background-color: #dddddd;}</style></head>"
+          html += "<h4>Dear Recipients,</h4>"
+          html += "<h4>Please find below reports.</h4>"
+
+          html += "<br>"
+          html += "<br>"
+          html += "<br>"
+          html += "<br>"
+          html += "<h4><b> Projected Data of Mar month with 152 devices. </b></h4>"
+
+          html += "<h4><b> Totalwifilogin:" + wifi + "</b></h4>"
+
+          var wc = ((doc[0].Watchclick / doc[0].Watchdevice) * total_device) * days;
+          var wu = ((doc[0].Watchuser / doc[0].Watchdevice) * total_device) * days;
+
+          html += "<h4> Watchclick:" + Math.round(wc) + "</h4>"
+          html += "<h4> Watchuser:" + Math.round(wu) + "</h4>"
+
+          var fc = ((doc[0].Fnbclick / doc[0].Fnbdevice) * total_device) * days;
+          var fu = ((doc[0].Fnbuser / doc[0].Fnbdevice) * total_device) * days;
+
+          html += "<h4> Fnbclick:" + Math.round(fc) + "</h4>"
+          html += "<h4> Fnbuser:" + Math.round(fu) + "</h4>"
+
+          var vc = ((doc[0].Videoclick / doc[0].Videodevice) * total_device) * days;
+          var vu = ((doc[0].Videouser / doc[0].Videodevice) * total_device) * days;
+
+          html += "<h4> Videoclick:" + Math.round(vc) + "</h4>"
+          html += "<h4> Videouser:" + Math.round(vu) + "</h4>"
+
+          var gc = ((doc[0].Gameclick / doc[0].Gamedevice) * total_device) * days;
+          var gu = ((doc[0].Gameuser / doc[0].Gamedevice) * total_device) * days;
+
+          html += "<h4> Gameclick:" + Math.round(gc) + "</h4>"
+          html += "<h4> Gameuser:" + Math.round(gu) + "</h4>"
+
+          var mc = ((doc[0].Magzineclick / doc[0].Magzinedevice) * total_device) * days;
+          var mu = ((doc[0].Magzineuser / doc[0].Magzinedevice) * total_device) * days;
+
+          html += "<h4> Magzineclick:" + Math.round(mc) + "</h4>"
+          html += "<h4> Magzineuser:" + Math.round(mu) + "</h4>"
+
+          var ac = ((doc[0].Audioclick / doc[0].Audiodevice) * total_device) * days;
+          var au = ((doc[0].Audiouser / doc[0].Audiodevice) * total_device) * days;
+
+          html += "<h4> Audioclick:" + Math.round(ac) + "</h4>"
+          html += "<h4> Audiouser:" + Math.round(au) + "</h4>"
+
+          var cc = ((doc[0].Classifiedclick / doc[0].Classifieddevice) * total_device) * days;
+          var cu = ((doc[0].Classifieduser / doc[0].Classifieddevice) * total_device) * days;
+
+          html += "<h4> Classifiedclick:" + Math.round(cc) + "</h4>"
+          html += "<h4> Classifieduser:" + Math.round(cu) + "</h4>"
+
+          var ic = ((doc[0].Interstitialclick / doc[0].Interstitialdevice) * total_device) * days;
+          var iu = ((doc[0].Interstitialuser / doc[0].Interstitialdevice) * total_device) * days;
+
+
+          html += "<h4> Interstitialclick:" + Math.round(ic) + "</h4>"
+          html += "<h4> Interstitialuser:" + Math.round(iu) + "</h4>"
+
+
+          var sms = "Projected%20Data%20Report%20%0Awifi%20Login%3A%20" + Math.round(wifi) + "%0AHomepage%20Login%3A%20" + Math.round(hpl) + "%0AWatch%20user%3A%20" + Math.round(wu) + "%0AWatch%20click%3A" + Math.round(wc) + "%20%0AFnb%20user%3A" + Math.round(fu) + "%0AFnb%20click%3A" + Math.round(fc) + "%0AVideo%20user%3A" + Math.round(vu) + "%0AVideo%20click%3A" + Math.round(vc) + "%0AGame%20user%3A" + Math.round(gu) + "%0AGame%20click%3A" + Math.round(gc) + "%0AMagzine%20user%3A" + Math.round(mu) + "%0AMagzine%20click%3A" + Math.round(mc) + "%0AAudio%20user%3A" + Math.round(au) + "%0AAudio%20click%3A" + Math.round(ac) + "%0AAD%20user%3A" + Math.round(cu) + "%0AAD%20click%3A" + Math.round(cc) + "%0ATravel%20user%3A" + Math.round(iu) + "%0ATravel%20click%3A" + Math.round(ic) + ""
+          // var sms="Actual Summery Report  Total%20wifi%20Login%20%3A" + wifi+" %20%250A%20T-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A--%250A%20Y-%20Totalhostsync-TotalHomepagelogin-Totalclicks-TotalAdclick%3A---"
+          let reso = { data: sms };
+          // console.log(reso);
+          return res.status(200).json(reso);
+
+          html += "<br><br><h5>Thanks & Regards</h5><h5>Mobi Sign Pvt Ltd.</h5></html>"
+          let subject = "Spicescreen SmsReport"
+          //  var email = 'manoj.gupta@mobisign.co.in,deepak.kumar'
+          // var email = 'vishal.garg@mobisign.co.in,deepak.kumar'
+          var email = 'vishal.garg@mobisign.co.in,tushar.mehta@mobisign.co.in'
+          EM.dispatchEmail(email, subject, html, "timeSpent", function (e) {
+            console.log(e)
+          })
+
+
+        }
+
+      })
+    }
+  })
+}
 
 
 

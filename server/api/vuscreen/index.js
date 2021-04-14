@@ -57,6 +57,10 @@ router.get('/reads/export/csv', auth.isAuthenticated(), controller.vuscreen_read
 router.get('/clubregistration', auth.isAuthenticated(), controller.vuscreen_mobile_index);
 router.get('/clubregistration/export/csv', auth.isAuthenticated(), controller.vuscreen_mobile_export_csv);
 
+//clubregistration2
+router.get('/clubregistration', auth.isAuthenticated(), controller.vuscreen_openform_index);
+router.get('/clubregistration/export/csv', auth.isAuthenticated(), controller.vuscreen_openform_export_csv);
+
 //couponHistory
 router.get('/couponHistory', auth.isAuthenticated(), controller.vuscreen_coupon_index);
 router.get('/couponHistory/export/csv', auth.isAuthenticated(), controller.vuscreen_coupon_export_csv);
@@ -119,6 +123,13 @@ router.get('/monthlyusage', auth.isAuthenticated(), controller.monthly_usage)
 // usage bucket
 router.get('/usage-bucket', auth.isAuthenticated(), controller.usage_bucket)
 
+// Sms host report
+router.get('/Knowlarity_Passcode', auth.isAuthenticated(), controller.vuscreen_Knowlarity_index)
+router.get('/Knowlarity_Passcode/export/csv', auth.isAuthenticated(), controller.vuscreen_Knowlarity_export_csv);
+
+//Sms lead report
+router.get('/Knowlarity_ana', auth.isAuthenticated(), controller.vuscreen_Knowlarity_ana_index)
+router.get('/Knowlarity_ana/export/csv', auth.isAuthenticated(), controller.vuscreen_Knowlarity_ana_export_csv);
 // server session details
 router.get('/server-session', controller.serverSessionDetails);
 

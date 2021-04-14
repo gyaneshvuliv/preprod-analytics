@@ -25,4 +25,13 @@ router.get('/timeZoneWiseWIFILogin', auth.isAuthenticated(), controller.timeZone
 //top 10 destination wise wifilogin
 router.get('/destinationWiseWIFILogin', auth.isAuthenticated(), controller.destinationWiseWIFILogin);
 
+//daily summary analysis
+router.get('/daily_summary', auth.isAuthenticated(), controller.daily_summary);
+
+//destinations wise summary
+router.get('/deswise_summary', auth.isAuthenticated(), controller.deswise_summary);
+
+//Host wise summary
+router.get('/hostwise_summary', auth.isAuthenticated(), controller.hostwise_summary);
+
 module.exports = router;

@@ -53,8 +53,8 @@ exports.tracking_Bottom = function (req, res) {
   var startDate = 'null', endDate = 'null';
   if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
   if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
- var query="select (SELECT count(1) FROM spicescreen.vuscreen_ife_data   where f_type='Domestic' and  date<='"+endDate+"' and date>='"+startDate+"') domestic,"
- +"(SELECT count(1) FROM spicescreen.vuscreen_ife_data   where f_type='International' and date<='"+endDate+"' and date>='"+startDate+"')International"
+ var query="select (SELECT count(1) FROM  vuscreen_ife_data   where f_type='Domestic' and  date<='"+endDate+"' and date>='"+startDate+"') domestic,"
+ +"(SELECT count(1) FROM  vuscreen_ife_data   where f_type='International' and date<='"+endDate+"' and date>='"+startDate+"')International"
  db.get().query(query, function (err, doc) {
   if (err) { return handleError(res, err); }
   return res.status(200).json(doc);

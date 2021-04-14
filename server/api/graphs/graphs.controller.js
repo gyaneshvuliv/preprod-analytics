@@ -16,6 +16,7 @@ var request = require('request');
 var cronController = require('../cron/cron.controller');
 var async = require('async');
 const { user } = require('../../config/email-settings');
+const { count } = require('../vuscreen/vuscreen.model');
 
 
 
@@ -157,243 +158,274 @@ exports.timeZoneWiseWIFILogin = function (req, res) {
 
 };
 // timeZoneWiseWIFILogin()
-function wifi_login_timeZone_wise(start, end) {
-  return new Promise(function (myResolve, myReject) {
-    // console.log("vish");
-    var query = `SELECT  a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id    WHERE  a.view_datetime <= '${end}'  and a.view_datetime >= '${start}' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC`;
-    db.get().query(query, function (err, doc) {
-      console.log(err);
-      if (err) { return handleError(res, err); }
-      else {
-        // console.log(query);
-        // console.log(doc.length);
-        if (doc.length == 0) {
-          myResolve(0);
-        }
-        else {
-          var data = ""
-          let wifiMap = new Map();
-          let a = []
-          var count = 0;
-          for (let i = 0; i < doc.length; i++) {
-            data += doc[i].unique_mac_address + ",";
-            // console.log(doc[i].unique_mac_address)
 
-            if (doc.length == i + 1) {
-              var data1 = data.split(',');
-              // console.log(data1.length);
+      
+    
+  
 
-              for (let j = 0; j < data1.length; j++) {
-                const element = data1[j];
-
-                wifiMap.set(element, element)
-
-                if (data1.length == j + 1) {
-                  // console.log(wifiMap.size)
-                  count = wifiMap.size
-                  // myResolve(count);
-                  // // function logMapElements(value, key, map) {
-
-                  // //   a.push({ "macaddress": value })
-                  // //   // console.log(`m[${key}] = ${value}`);
-                  // // }
-                  // // wifiMap.forEach(logMapElements);
-                }
-
-              }
-              // console.log(wifiMap);
-              // console.log(wifiMap.size);
-              myResolve(count);
-
-            }
-          }
-        }
-      }
-    })
-  });
-};
 
 ////////Get Destination wise wifilogin/////////////////
 exports.destinationWiseWIFILogin = function (req, res) {
   // var destinationWiseWIFILogin = function () {
-  async function app() {
-    var finalData = [];
-    for (let p = 1; p < 2; p++) {
-      // var currentDate = moment(new Date()).format('YYYY-MM-DD');
-      var d = new Date();
-      // console.log(p);
-      d.setDate(d.getDate() - p);
-      var Yesterday = moment(d).format('YYYY-MM-DD').toString()
-      console.log(Yesterday);
-      var dest = ['AGR',
-        'AMD',
-        'AJL',
-        'KQH',
-        'ATQ',
-        'IXU',
-        'IXB',
-        'IXG',
-        'BLR',
-        'BUP',
-        'BHO',
-        'MAA',
-        'CJB',
-        'DBR',
-        'DED',
-        'DEL',
-        'DHM',
-        'DIB',
-        'RDP',
-        'GAY',
-        'GOI',
-        'GOP',
-        'GAU',
-        'GWL',
-        'HBX',
-        'HYD',
-        'IDR',
-        'JLR',
-        'JAI',
-        'JSA',
-        'AIP',
-        'IXJ',
-        'JRG',
-        'JDH',
-        'IXY',
-        'KNU',
-        'HJR',
-        'COK',
-        'CCU',
-        'CCJ',
-        'IXL',
-        'LKO',
-        'IXM',
-        'IXE',
-        'BOM',
-        'ISK',
-        'PYG',
-        'PAT',
-        'PNY',
-        'PBD',
-        'IXZ',
-        'PNQ',
-        'RAJ',
-        'IXR',
-        'SAG',
-        'IXS',
-        'SXR',
-        'STV',
-        'TRV',
-        'TRZ',
-        'TIR',
-        'TCR',
-        'UDR',
-        'VNS',
-        'VGA',
-        'VTZ',
-        'ALA',
-        'BKK',
-        'FRU',
-        'CEB',
-        'CGP',
-        'CMB',
-        'DAC',
-        'DXB',
-        'HKG',
-        'JED',
-        'KBL',
-        'DMM',
-        'LHR',
-        'MNL',
-        'DME',
-        'MLE',
-        'MCT',
-        'RKT',
-        'RUH',
-        'TAS',
-        'YYZ'
-      ];
-      for (let i in dest) {
-        // console.log(i);
-        let doc1 = await wifi_login_des_wise(dest[i], Yesterday);
-        // console.log(host);
-        let midData = {
-          user: doc1,
-          date: Yesterday,
-          des: dest[i]
-        }
-        // console.log(midData);
-        finalData.push(midData);
+    var startDate, endDate;
+    if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+    if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+  
+    var query = "SELECT b.name as destination, COUNT(DISTINCT mac) AS user FROM spicescreen.vuscreen_wifilogin as a join spicescreen.vuscreen_city as b on a.destination=b.code WHERE sync_date >= '" + startDate + "' AND sync_date <= '"+ endDate +"' GROUP BY b.name ORDER BY user DESC LIMIT 10"
+    db.get().query(query, function (err, doc) {
+      if (err) { return handleError(res, err); }
+      return res.status(200).json(doc);
+    })
+};
 
-      }
+
+
+exports.daily_summary = function (req, res) {
+  // var daily_summary = function (req, res) {
+  var days = [35, 28, 21, 14, 7]
+  var beforeOneWeek;
+  var day;
+  var diffToMonday;
+  var dayofweeks = [];
+  var filter;
+  var startDate, endDate;
+  // var version;
+
+  // if (req.query.version != "undefined" && req.query.version != "") {
+  //   version = "'" + req.query.version + "'"
+  // } else {
+  //   version = 'null'
+  // }
+  console.log(req.query.startDate)
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+  filter = " sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "' "
+  if (req.query.daysfilter != "undefined" && req.query.daysfilter != "" && typeof (req.query.daysfilter) != "undefined") {
+    for (var i = 0; i < days.length; i++) {
+      beforeOneWeek = new Date(new Date().getTime() - 60 * 60 * 24 * days[i] * 1000)
+      day = beforeOneWeek.getDay()
+      diffToMonday = beforeOneWeek.getDate() - day + (day === 0 ? -6 : 1)
+      dayofweeks.push(moment(new Date(beforeOneWeek.setDate(diffToMonday + parseInt(req.query.daysfilter)))).format('YYYY-MM-DD'))
+    };
+    if (req.query.daysfilter == new Date().getDay() - 1) {
+      dayofweeks.push(moment(new Date()).format('YYYY-MM-DD'))
     }
-    // console.log("abc");
-    // console.log(finalData);
-    finalData.sort(function(a, b){return b.user-a.user});
-//  console.log(finalData);
-    res.json(finalData);
-    // let doc2 = await email_DW(finalData);
 
-
-    //   res.status("200").json(insert);
+    filter =  "sync_date IN" + JSON.stringify(dayofweeks).replace('[', '(').replace(']', ')')
 
   }
-  app();
 
-};
+  var query1 = "select sync_date date, count(distinct mac) as TotalHomepagelogin FROM spicescreen.vuscreen_tracker where " + filter + " and menu='SS' GROUP BY date order by date "
 
-function wifi_login_des_wise(dest, Yesterday) {
-  return new Promise(function (myResolve, myReject) {
-    // console.log("vish");
-    var query = `SELECT  a.event, a.view_datetime, a.journey_id,unique_mac_address FROM spicescreen.vuscreen_events a JOIN vuscreen_registration b ON a.device_id = b.device_id    WHERE  a.view_date =  '${Yesterday}'  and a.destination= '${dest}' AND a.event != 'download' AND a.event != 'charging' ORDER BY a.id DESC`;
-    db.get().query(query, function (err, doc) {
-      // console.log(err);
-      if (err) { return handleError(res, err); }
-      else {
-        // console.log(query);
-        // console.log(doc.length);
-        if (doc.length == 0) {
-          myResolve(0);
-        }
+  // console.log(query1)
+  db.get().query(query1, function (err, doc) {
+    if (err) { return handleError(res, err); }
+    else {
+      var query2 = "SELECT sync_date date, count(1) AS TotalAdclick  FROM spicescreen.vuscreen_tracker where " + filter + " and menu='AD' GROUP BY date order by date "
+      db.get().query(query2, function (err, doc1) {
+        if (err) { return handleError(res, err); }
         else {
-          var data = ""
-          let wifiMap = new Map();
-          let a = []
-          var count = 0;
-          for (let i = 0; i < doc.length; i++) {
-            data += doc[i].unique_mac_address + ",";
-            // console.log(doc[i].unique_mac_address)
+          var query3 = "SELECT sync_date date, count(1) as Totalclicks  FROM spicescreen.vuscreen_tracker where " + filter + " GROUP BY date order by date "
+          db.get().query(query3, function (err, doc2) {
+            if (err) { return handleError(res, err); }
 
-            if (doc.length == i + 1) {
-              var data1 = data.split(',');
-              // console.log(data1.length);
+            else {
+              var query4 = "SELECT a.sync_date date, COUNT(1) AS Totalpdfdownload FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content as b on a.view_id=b.content_id where " + filter + " and a.menu='PDFDOWNLOAD' GROUP BY date order by date "
+              db.get().query(query4, function (err, doc3) {
+                if (err) { return handleError(res, err); }
+                else {
+                  var query5 = "SELECT sync_date date, COUNT(DISTINCT mac) as wifiLogin FROM spicescreen.vuscreen_wifilogin WHERE " + filter + " GROUP BY date order by date "
+              db.get().query(query5, function (err, doc4) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+                        let data = [doc, doc1, doc2, doc3, doc4]
+                        return res.status(200).json(data);
+                      }
 
-              for (let j = 0; j < data1.length; j++) {
-                const element = data1[j];
+                      // return res.status(200).json(doc);
+                    })
 
-                wifiMap.set(element, element)
-
-                if (data1.length == j + 1) {
-                  // console.log(wifiMap.size)
-                  count = wifiMap.size
-                  // myResolve(count);
-                  // // function logMapElements(value, key, map) {
-
-                  // //   a.push({ "macaddress": value })
-                  // //   // console.log(`m[${key}] = ${value}`);
-                  // // }
-                  // // wifiMap.forEach(logMapElements);
-                }
-
+                  }
+                  
+                })
               }
-              // console.log(wifiMap);
-              // console.log(wifiMap.size);
-              myResolve(count);
-
-            }
+            })
           }
-        }
+        })
       }
     })
-  });
+  };
+
+exports.deswise_summary = function (req, res) {
+  // var deswise_summary = function (req, res) {
+  var days = [35, 28, 21, 14, 7]
+  var beforeOneWeek;
+  var day;
+  var diffToMonday;
+  var dayofweeks = [];
+  var filter;
+  var startDate, endDate, destination;
+  // var version;
+  if (req.query.destination != "undefined" && req.query.destination != "") {
+    destination = "'" + req.query.destination + "'"
+  } else {
+    destination = 'null'
+  }
+  // if (req.query.version != "undefined" && req.query.version != "") {
+  //   version = "'" + req.query.version + "'"
+  // } else {
+  //   version = 'null'
+  // }
+  console.log(req.query.startDate)
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+
+  filter = " sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "' AND  destination = IFNULL(" + destination + ",destination)"
+  if (req.query.daysfilter != "undefined" && req.query.daysfilter != "" && typeof (req.query.daysfilter) != "undefined") {
+    for (var i = 0; i < days.length; i++) {
+      beforeOneWeek = new Date(new Date().getTime() - 60 * 60 * 24 * days[i] * 1000)
+      day = beforeOneWeek.getDay()
+      diffToMonday = beforeOneWeek.getDate() - day + (day === 0 ? -6 : 1)
+      dayofweeks.push(moment(new Date(beforeOneWeek.setDate(diffToMonday + parseInt(req.query.daysfilter)))).format('YYYY-MM-DD'))
+    };
+    if (req.query.daysfilter == new Date().getDay() - 1) {
+      dayofweeks.push(moment(new Date()).format('YYYY-MM-DD'))
+    }
+
+    filter =  " sync_date IN " + JSON.stringify(dayofweeks).replace('[', '(').replace(']', ')')
+
+  }
+
+
+  var query1 = "select sync_date date, count(distinct mac) as TotalHomepagelogin FROM spicescreen.vuscreen_tracker where " + filter + " and menu='SS' GROUP BY date order by date "
+
+  // console.log(query1)
+  db.get().query(query1, function (err, doc) {
+    console.log(err);
+    if (err) { return handleError(res, err); }
+    else {
+      var query2 = "SELECT sync_date date, count(1) AS TotalAdclick  FROM spicescreen.vuscreen_tracker where " + filter + "  and menu='AD'  GROUP BY date order by date "
+      db.get().query(query2, function (err, doc1) {
+        if (err) { return handleError(res, err); }
+        else {
+          var query3 = "SELECT sync_date date, count(1) as Totalclicks  FROM spicescreen.vuscreen_tracker where " + filter + "   GROUP BY date order by date "
+          db.get().query(query3, function (err, doc2) {
+            if (err) { return handleError(res, err); }
+
+            else {
+              var query4 = "SELECT a.sync_date date, COUNT(1) AS Totalpdfdownload FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content as b on a.view_id=b.content_id where " + filter + " and a.menu='PDFDOWNLOAD' GROUP BY date order by date "
+              db.get().query(query4, function (err, doc3) {
+                if (err) { return handleError(res, err); }
+                else {
+                  var query5 = "SELECT sync_date date, COUNT(DISTINCT mac) as wifiLogin FROM spicescreen.vuscreen_wifilogin WHERE " + filter + " GROUP BY date order by date "
+              db.get().query(query5, function (err, doc4) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+
+                let data = [doc, doc1, doc2, doc3, doc4]
+                return res.status(200).json(data);
+              }
+
+              // return res.status(200).json(doc);
+            })
+
+          }
+        })
+      }
+    })
+  }
+})
+    }
+  })
 };
+
+exports.hostwise_summary = function (req, res) {
+  // var deswise_summary = function (req, res) {
+  var days = [35, 28, 21, 14, 7]
+  var beforeOneWeek;
+  var day;
+  var diffToMonday;
+  var dayofweeks = [];
+  var filter;
+  var filter1;
+
+  var startDate, endDate, hostId;
+  // var version;
+  if (req.query.hostId != "undefined" && req.query.hostId != "") {
+    hostId = "'" + req.query.hostId + "'"
+  } else {
+    hostId = 'null'
+  }
+  // if (req.query.version != "undefined" && req.query.version != "") {
+  //   version = "'" + req.query.version + "'"
+  // } else {
+  //   version = 'null'
+  // }
+  console.log(req.query.startDate)
+  if (req.query.startDate) { startDate = moment(req.query.startDate).format('YYYY-MM-DD'); }
+  if (req.query.endDate) { endDate = moment(req.query.endDate).format('YYYY-MM-DD'); }
+
+  filter = " sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "' AND hostId = IFNULL(" + hostId + ",hostId)"
+  filter1 = " sync_date >= '" + startDate + "' AND sync_date <= '" + endDate + "' AND host = IFNULL(" + hostId + ",host)"
+
+
+  if (req.query.daysfilter != "undefined" && req.query.daysfilter != "" && typeof (req.query.daysfilter) != "undefined") {
+    for (var i = 0; i < days.length; i++) {
+      beforeOneWeek = new Date(new Date().getTime() - 60 * 60 * 24 * days[i] * 1000)
+      day = beforeOneWeek.getDay()
+      diffToMonday = beforeOneWeek.getDate() - day + (day === 0 ? -6 : 1)
+      dayofweeks.push(moment(new Date(beforeOneWeek.setDate(diffToMonday + parseInt(req.query.daysfilter)))).format('YYYY-MM-DD'))
+    };
+    if (req.query.daysfilter == new Date().getDay() - 1) {
+      dayofweeks.push(moment(new Date()).format('YYYY-MM-DD'))
+    }
+
+    filter = " sync_date IN " + JSON.stringify(dayofweeks).replace('[', '(').replace(']', ')')
+    filter1 = " sync_date IN " + JSON.stringify(dayofweeks).replace('[', '(').replace(']', ')')
+
+
+  }
+
+
+  var query1 = "select sync_date date, count(distinct mac) as TotalHomepagelogin FROM spicescreen.vuscreen_tracker where " + filter + " and menu='SS' GROUP BY date order by date "
+
+  // console.log(query1)
+  db.get().query(query1, function (err, doc) {
+    console.log(err);
+    if (err) { return handleError(res, err); }
+    else {
+      var query2 = "SELECT sync_date date, count(1) AS TotalAdclick  FROM spicescreen.vuscreen_tracker where " + filter + "  and menu='AD'  GROUP BY date order by date "
+      db.get().query(query2, function (err, doc1) {
+        if (err) { return handleError(res, err); }
+        else {
+          var query3 = "SELECT sync_date date, count(1) as Totalclicks  FROM spicescreen.vuscreen_tracker where " + filter + "   GROUP BY date order by date "
+          db.get().query(query3, function (err, doc2) {
+            if (err) { return handleError(res, err); }
+
+            else {
+              var query4 = "SELECT a.sync_date date, COUNT(1) AS Totalpdfdownload FROM spicescreen.vuscreen_tracker AS a JOIN spicescreen.vuscreen_travel_content as b on a.view_id=b.content_id where " + filter + " and a.menu='PDFDOWNLOAD' GROUP BY date order by date "
+              db.get().query(query4, function (err, doc3) {
+                if (err) { return handleError(res, err); }
+                else {
+                  var query5 = "SELECT sync_date date, COUNT(DISTINCT mac) as wifiLogin FROM spicescreen.vuscreen_wifilogin WHERE " + filter1 + " GROUP BY date order by date "
+              db.get().query(query5, function (err, doc4) {
+                console.log(err);
+                if (err) { return handleError(res, err); }
+                else {
+                let data = [doc, doc1, doc2, doc3, doc4]
+                return res.status(200).json(data);
+              }
+            })
+          }
+        })
+      }
+    })
+  }
+})
+    }
+  })
+}
+
+
